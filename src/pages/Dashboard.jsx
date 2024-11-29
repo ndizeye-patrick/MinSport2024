@@ -1,0 +1,405 @@
+import React, { useEffect, useState } from 'react';
+import { Bar, Pie, Line } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, LineElement, PointElement, Filler } from 'chart.js';
+import axiosInstance from '../utils/axiosInstance'; // Assuming this is the Axios instance to make API calls
+import { useNavigate } from 'react-router-dom';
+import { FileText, Users, Award, Building2, Flag, Calendar as CalendarIcon } from 'lucide-react';
+import { Button } from '../components/ui/button'; // Assuming Button is a custom component you have
+
+ChartJS.register(
+  CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, LineElement, PointElement, Filler
+);
+
+const Dashboard = () => {
+  const [statsData, setStatsData] = useState({
+    federations: 0,
+    clubs: 0,
+    clubPlayers: 0,
+    sportTeams: 0,
+    teamPlayers: 0,
+    officialsAndPlayers: 0,
+    isongaProgram: 9,
+    students: 0,
+    infrastructure: 12,
+    documents: 0,
+    appointments: 0,
+    employees: 0,
+  });
+
+  const [appointmentRequests, setAppointmentRequests] = useState([]);
+  const [upcomingAppointments, setUpcomingAppointments] = useState([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const [federations, clubs, students, documents, appointments, employees] = await Promise.all([
+          axiosInstance.get('/federations'),
+          axiosInstance.get('/clubs'),
+          axiosInstance.get('/students'),
+          axiosInstance.get('/documents'),
+          axiosInstance.get('/appointments'),
+          axiosInstance.get('/employees'),
+        ]);
+
+        const clubData = clubs.data || [];
+        const employeeData = Array.isArray(employees.data?.employees) ? employees.data.employees : [];
+        const studentData = Array.isArray(students.data?.data) ? students.data.data : [];
+        const documentData = Array.isArray(documents.data?.data) ? documents.data.data : [];
+        const appointmentData = appointments.data || [];
+
+        setStatsData({
+          federations: federations.data?.length || 0,
+          clubs: clubData.length,
+          clubPlayers: clubData.reduce((acc, club) => acc + (club.players ? club.players.length : 0), 0),
+          sportTeams: clubData.reduce((acc, club) => acc + (club.teams ? club.teams.length : 0), 0),
+          teamPlayers: clubData.reduce(
+            (acc, club) =>
+              acc + (club.teams ? club.teams.reduce((teamAcc, team) => teamAcc + (team.players ? team.players.length : 0), 0) : 0),
+            0
+          ),
+          officialsAndPlayers: employeeData.filter(emp => emp.role === 'official' || emp.role === 'player').length,
+          isongaProgram: 9,
+          students: studentData.length,
+          infrastructure: 12,
+          documents: documentData.length,
+          appointments: appointmentData.length,
+          employees: employeeData.length,
+        });
+
+        setAppointmentRequests(appointmentData);
+
+        // Fetch upcoming appointments (filter by date or status)
+        const futureAppointments = appointmentData.filter(appointment => new Date(appointment.date) > new Date());
+        setUpcomingAppointments(futureAppointments);
+
+        // Sort the appointment requests by date (descending order) and take the last 3
+        const sortedAppointments = appointmentData.sort((a, b) => new Date(b.date) - new Date(a.date)); // Latest first
+        setAppointmentRequests(sortedAppointments.slice(0, 3)); // Get the last 3 (most recent)
+
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  const renderAppointmentStatus = (status) => {
+    switch (status) {
+      case 'approved':
+        return <span className="text-green-600 font-semibold">Approved</span>;
+      case 'pending':
+        return <span className="text-yellow-600 font-semibold">Pending</span>;
+      default:
+        return <span className="text-gray-600">Unknown</span>;
+    }
+  };
+
+  // Stats data for first row
+  const statsRow1 = [
+    { 
+      number: statsData.federations, 
+      label: 'Federations', 
+      icon: FileText, 
+      color: 'bg-blue-100 text-blue-600',
+      path: '/federations'
+    },
+    { 
+      number: statsData.clubs, 
+      label: 'Clubs', 
+      icon: Users, 
+      color: 'bg-purple-100 text-purple-600',
+      path: '/clubs'
+    },
+    { 
+      number: statsData.clubPlayers, 
+      label: 'Club Players', 
+      icon: Award, 
+      color: 'bg-green-100 text-green-600',
+      path: '/club-players'
+    },
+    { 
+      number: statsData.sportTeams, 
+      label: 'Sport Teams', 
+      icon: Building2, 
+      color: 'bg-orange-100 text-orange-600',
+      path: '/sport-teams'
+    },
+    { 
+      number: statsData.teamPlayers, 
+      label: 'Team Players', 
+      icon: Flag, 
+      color: 'bg-green-100 text-green-600',
+      path: '/team-players'
+    },
+    { 
+      number: statsData.officialsAndPlayers, 
+      label: 'Officials & Players', 
+      icon: Flag, 
+      color: 'bg-green-100 text-green-600',
+      path: '/officials-players'
+    }
+  ];
+
+  // Stats data for second row
+  const statsRow2 = [
+    { 
+      number: statsData.isongaProgram, 
+      label: 'Isonga Program', 
+      icon: Award, 
+      color: 'bg-red-100 text-red-600',
+      path: '/isonga-programs'
+    },
+    { 
+      number: statsData.students, 
+      label: 'Students', 
+      icon: FileText, 
+      color: 'bg-indigo-100 text-indigo-600',
+      path: '/students'
+    },
+    { 
+      number: statsData.infrastructure, 
+      label: 'Infrastructure', 
+      icon: Building2, 
+      color: 'bg-green-100 text-green-600',
+      path: '/infrastructure'
+    },
+    { 
+      number: statsData.documents, 
+      label: 'Documents', 
+      icon: FileText, 
+      color: 'bg-indigo-100 text-indigo-600',
+      path: '/documents'
+    },
+    { 
+      number: statsData.appointments, 
+      label: 'Appointments', 
+      icon: CalendarIcon, 
+      color: 'bg-yellow-100 text-yellow-600',
+      path: '/appointments'
+    },
+    { 
+      number: statsData.employees, 
+      label: 'Employees', 
+      icon: FileText, 
+      color: 'bg-indigo-100 text-indigo-600',
+      path: '/employees'
+    }
+  ];
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: {
+          color: '#000',
+        },
+      },
+    },
+    scales: {
+      x: {
+        ticks: {
+          color: '#000',
+        },
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)',
+        },
+      },
+      y: {
+        ticks: {
+          color: '#000',
+        },
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)',
+        },
+      },
+    },
+  };
+
+
+  const federationData = {
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+    datasets: [
+      {
+        label: 'Federations',
+        data: [12, 19, 3, 5, 2],
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const professionalsData = {
+    labels: ['Coaches', 'Referees', 'Athletes'],
+    datasets: [
+      {
+        label: 'Sports Professionals',
+        data: [10, 15, 30],
+        backgroundColor: ['red', 'blue', 'green'],
+      },
+    ],
+  };
+
+  const teamsPerformanceData = {
+    labels: ['Team A', 'Team B', 'Team C', 'Team D'],
+    datasets: [
+      {
+        label: 'National Teams Performance',
+        data: [65, 59, 80, 81],
+        fill: true,
+        borderColor: 'rgba(75, 192, 192, 1)',
+        tension: 0.1,
+      },
+    ],
+  };
+
+  return (
+    <div className="p-6 space-y-6 bg-gray-50">
+      {/* Stats Grid */}
+      <div className="space-y-3">
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+          {statsRow1.map((stat, index) => (
+            <div 
+              key={index} 
+              className="bg-white hover:bg-gray-50 rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 shadow-sm hover:shadow-md"
+              onClick={() => navigate(stat.path)}
+            >
+              <div className={`${stat.color} p-2 rounded-full mb-2`}>
+                <stat.icon className="h-5 w-5" />
+              </div>
+              <h3 className="text-lg font-semibold">{stat.number}</h3>
+              <p className="text-xs">{stat.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+          {statsRow2.map((stat, index) => (
+            <div 
+              key={index} 
+              className="bg-white hover:bg-gray-50 rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 shadow-sm hover:shadow-md"
+              onClick={() => navigate(stat.path)}
+            >
+              <div className={`${stat.color} p-2 rounded-full mb-2`}>
+                <stat.icon className="h-5 w-5" />
+              </div>
+              <h3 className="text-lg font-semibold">{stat.number}</h3>
+              <p className="text-xs">{stat.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+
+      {/* Upcoming Appointments and Appointment Requests Section */}
+      <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Upcoming Appointments Section */}
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold">Upcoming Appointments</h3>
+            <Button size="sm" variant="secondary" onClick={() => navigate('/appointments')}>View All</Button>
+          </div>
+          {upcomingAppointments.length === 0 ? (
+            <p className="text-gray-500">No upcoming appointments.</p>
+          ) : (
+            <ul>
+              {upcomingAppointments.map((appointment, index) => (
+                <li key={index} className="flex justify-between items-center py-2">
+                  <div>
+                    <strong>{appointment.title}</strong>
+                    <p className="text-sm text-gray-500">{new Date(appointment.date).toLocaleDateString()}</p>
+                  </div>
+                  <span className="text-sm text-gray-600">{renderAppointmentStatus(appointment.status)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Appointment Requests Section */}
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold">Appointment Requests</h3>
+            <Button size="sm" variant="secondary" onClick={() => navigate('/appointments')}>View All</Button>
+          </div>
+          {appointmentRequests.length === 0 ? (
+            <p className="text-gray-500">No new appointment requests.</p>
+          ) : (
+            <ul>
+              {appointmentRequests.map((appointment, index) => (
+                <li key={index} className="flex justify-between items-center py-2">
+                  <div>
+                    <strong>{appointment.title}</strong>
+                    <p className="text-sm text-gray-500">{new Date(appointment.date).toLocaleDateString()}</p>
+                  </div>
+                  <span className="text-sm text-gray-600">{renderAppointmentStatus(appointment.status)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+  
+      {/* Federation Performance and Sports Professionals Distribution Section */}
+      <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
+        {/* Federation Performance Chart */}
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <h3 className="text-lg font-semibold mb-4">Federation Performance</h3>
+          <div className="h-[300px]">
+            <Bar data={federationData} options={chartOptions} />
+          </div>
+        </div>
+
+        {/* Sports Professionals Distribution Chart */}
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <h3 className="text-lg font-semibold mb-4">Sports Professionals Distribution</h3>
+          <div className="h-[300px]">
+            <Pie data={professionalsData} options={chartOptions} />
+          </div>
+        </div>
+      </div>
+
+      {/* National Teams Performance Chart */}
+      <div className="mt-8 bg-white p-6 rounded-lg shadow-lg">
+        <h3 className="text-lg font-semibold">National Teams Performance</h3>
+        <div className="h-[670px]">
+          <Line data={teamsPerformanceData} options={chartOptions} />
+        </div>
+      </div>
+
+      {/* Key Performance Metrics Section */}
+      <div className="mt-8 space-y-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
+            <div className="text-3xl font-bold text-gray-900">2,845</div>
+            <div className="text-xs text-gray-600">Active Athletes</div>
+            <div className="text-green-500">+12% from last month</div>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
+            <div className="text-3xl font-bold text-gray-900">42</div>
+            <div className="text-xs text-gray-600">International Events</div>
+            <div className="text-green-500">+5 from last month</div>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
+            <div className="text-3xl font-bold text-gray-900">350</div>
+            <div className="text-xs text-gray-600">Professional Staff</div>
+            <div className="text-red-500">-3 from last month</div>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
+            <div className="text-3xl font-bold text-gray-900">15</div>
+            <div className="text-xs text-gray-600">Rankings Improved</div>
+            <div className="text-green-500">+3 from last month</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;
