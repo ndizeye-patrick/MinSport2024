@@ -1,137 +1,122 @@
-import React, { useState } from 'react';
-import { Input } from '../ui/input';
-import { Button } from '../ui/button';
-import toast from 'react-hot-toast';
-import { Plus, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import axiosInstance from '../../utils/axiosInstance';
 
-const AddNationalTeamForm = ({ onSubmit, onCancel, initialData = null }) => {
+const AddNationalTeamForm = ({ initialData = null, onSubmitSuccess }) => {
   const [formData, setFormData] = useState({
-    teamName: initialData?.teamName || '',
-    teamMonth: initialData?.teamMonth || '',
-    month: initialData?.month || '',
-    teamYear: initialData?.teamYear || '',
-    federation: initialData?.federation || '',
-    competition: initialData?.competition || '',
-    city: initialData?.city || '',
-    country: initialData?.country || '',
-    games: initialData?.games || [{ game: '', stadium: '' }]
+    teamName: initialData?.teamName || 'Senior Men\'s National Team',
+    teamMonth: initialData?.teamMonth || 'JUN',
+    teamYear: initialData?.teamYear || 2024,
+    federationId: initialData?.federationId || 1,
+    competition: initialData?.competition || 'World Cup Qualifiers',
+    city: initialData?.city || 'Kigali',
+    country: initialData?.country || 'Rwanda',
+    games: initialData?.games || [{ stadium: 'Amahoro National Stadium' }]
   });
 
-  // Federation options
-  const federations = [
-    "Rwanda Football Federation (FERWAFA)",
-    "Rwanda Basketball Federation (FERWABA)",
-    "Rwanda Volleyball Federation (FRVB)",
-    "Rwanda Athletics Federation (RAF)",
-    "Rwanda Paralympic Committee (NPC)",
-    "Rwanda National Olympic and Sports Committee (RNOSC)"
-  ];
+  const [federations, setFederations] = useState([]);
+  const [error, setError] = useState(null);
 
-  // Countries list
-  const countries = [
-    "Rwanda",
-    "Uganda",
-    "Kenya",
-    "Tanzania",
-    "Burundi",
-    "DR Congo"
-  ];
+  useEffect(() => {
+    const fetchFederations = async () => {
+      try {
+        const response = await axiosInstance.get('/federations');
+        setFederations(response.data);
+      } catch (error) {
+        console.error('Error fetching federations:', error);
+      }
+    };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
+    fetchFederations();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: name === 'teamYear' || name === 'federationId' ? parseInt(value, 10) : value
     }));
   };
 
-  const handleAddGame = () => {
-    setFormData(prev => ({
-      ...prev,
-      games: [...prev.games, { game: '', stadium: '' }]
+  const handleGamesChange = (index, e) => {
+    const { name, value } = e.target;
+    const updatedGames = [...formData.games];
+    updatedGames[index] = { ...updatedGames[index], [name]: value };
+    setFormData((prevData) => ({
+      ...prevData,
+      games: updatedGames
     }));
   };
 
-  const handleRemoveGame = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      games: prev.games.filter((_, i) => i !== index)
-    }));
+  const validateFormData = () => {
+    if (!formData.teamName || !formData.city || !formData.country) {
+      return false;
+    }
+    return true;
   };
 
-  const handleGameChange = (index, field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      games: prev.games.map((game, i) => {
-        if (i === index) {
-          return { ...game, [field]: value };
-        }
-        return game;
-      })
-    }));
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!validateFormData()) {
+      setError('Please fill in all required fields.');
+      return;
+    }
+
+    try {
+      let response;
+      if (initialData && initialData.id) {
+        response = await axiosInstance.put(`/national-teams/${initialData.id}`, formData);
+      } else {
+        response = await axiosInstance.post('/national-teams', formData);
+      }
+      console.log('Form submitted successfully:', formData); // Log the updated form data
+      if (onSubmitSuccess) onSubmitSuccess(response.data);
+    } catch (error) {
+      setError('An error occurred while submitting the form. Please try again.');
+    }
   };
 
   return (
-    <div className="max-h-[calc(100vh-200px)] overflow-y-auto px-4">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Team Name */}
+    <div className="max-w-lg mx-auto p-6 bg-white shadow-md rounded-lg" style={{ height: '80vh', overflowY: 'auto' }}>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {error && <div className="text-red-500 mb-4">{error}</div>}
+
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Team Name <span className="text-red-500">*</span>
           </label>
-          <Input
+          <input
             type="text"
             name="teamName"
             value={formData.teamName}
             onChange={handleChange}
             required
             placeholder="Enter team name"
+            className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
-        {/* Team Month */}
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Team Month <span className="text-red-500">*</span>
           </label>
-          <Input
+          <input
             type="text"
             name="teamMonth"
             value={formData.teamMonth}
             onChange={handleChange}
             required
             placeholder="Enter team month"
+            className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
-        {/* Month */}
         <div>
-          <label className="block text-sm font-medium mb-1">Month</label>
-          <select
-            name="month"
-            value={formData.month}
-            onChange={handleChange}
-            className="w-full border rounded-lg p-2"
-          >
-            <option value="">Select Month</option>
-            {Array.from({ length: 12 }, (_, i) => {
-              const month = new Date(0, i).toLocaleString('default', { month: 'long' });
-              return <option key={month} value={month}>{month}</option>;
-            })}
-          </select>
-        </div>
-
-        {/* Team Year */}
-        <div>
-          <label className="block text-sm font-medium mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Team Year <span className="text-red-500">*</span>
           </label>
-          <Input
+          <input
             type="number"
             name="teamYear"
             value={formData.teamYear}
@@ -140,91 +125,89 @@ const AddNationalTeamForm = ({ onSubmit, onCancel, initialData = null }) => {
             placeholder="Enter team year"
             min="2000"
             max="2100"
+            className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
-        {/* Federation */}
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Federation <span className="text-red-500">*</span>
           </label>
           <select
-            name="federation"
-            value={formData.federation}
+            name="federationId"
+            value={formData.federationId}
             onChange={handleChange}
             required
-            className="w-full border rounded-lg p-2"
+            className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Select Federation</option>
-            {federations.map(fed => (
-              <option key={fed} value={fed}>{fed}</option>
+            {federations.map(federation => (
+              <option key={federation.id} value={federation.id}>
+                {federation.name}
+              </option>
             ))}
           </select>
         </div>
 
-        {/* Competition */}
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Competition <span className="text-red-500">*</span>
           </label>
-          <Input
+          <input
             type="text"
             name="competition"
             value={formData.competition}
             onChange={handleChange}
             required
             placeholder="Enter competition name"
+            className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
-        {/* City */}
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             City <span className="text-red-500">*</span>
           </label>
-          <Input
+          <input
             type="text"
             name="city"
             value={formData.city}
             onChange={handleChange}
             required
             placeholder="Enter city"
+            className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
-        {/* Country */}
         <div>
-          <label className="block text-sm font-medium mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Country <span className="text-red-500">*</span>
           </label>
-          <select
+          <input
+            type="text"
             name="country"
             value={formData.country}
             onChange={handleChange}
             required
-            className="w-full border rounded-lg p-2"
-          >
-            <option value="">Select Country</option>
-            {countries.map(country => (
-              <option key={country} value={country}>{country}</option>
-            ))}
-          </select>
+            placeholder="Enter country"
+            className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
         </div>
 
-        {/* Games Section */}
         <div className="bg-gray-50 rounded-lg p-4">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-medium">Games and Stadiums</h3>
-            <Button
+            <button
               type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleAddGame}
-              className="flex items-center gap-2"
+              onClick={() => setFormData((prevData) => ({
+                ...prevData,
+                games: [...prevData.games, { stadium: '' }]
+              }))}
+              className="flex items-center gap-2 border border-gray-300 rounded-lg p-2 text-blue-600 hover:bg-blue-50"
             >
-              <Plus className="h-4 w-4" />
+              <span className="h-4 w-4">+</span>
               Add Game
-            </Button>
+            </button>
           </div>
 
           <div className="space-y-3">
@@ -232,39 +215,30 @@ const AddNationalTeamForm = ({ onSubmit, onCancel, initialData = null }) => {
               <div key={index} className="bg-white p-3 rounded-lg shadow-sm">
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Game Name <span className="text-red-500">*</span>
-                    </label>
-                    <Input
-                      type="text"
-                      value={game.game}
-                      onChange={(e) => handleGameChange(index, 'game', e.target.value)}
-                      required
-                      placeholder="Enter game name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       Stadium <span className="text-red-500">*</span>
                     </label>
                     <div className="flex gap-2">
-                      <Input
+                      <input
                         type="text"
+                        name="stadium"
                         value={game.stadium}
-                        onChange={(e) => handleGameChange(index, 'stadium', e.target.value)}
+                        onChange={(e) => handleGamesChange(index, e)}
                         required
                         placeholder="Enter stadium name"
+                        className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                       {formData.games.length > 1 && (
-                        <Button
+                        <button
                           type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveGame(index)}
+                          onClick={() => setFormData((prevData) => ({
+                            ...prevData,
+                            games: prevData.games.filter((_, i) => i !== index)
+                          }))}
                           className="text-red-600 hover:text-red-700"
                         >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                          <span className="h-4 w-4">🗑️</span>
+                        </button>
                       )}
                     </div>
                   </div>
@@ -274,25 +248,24 @@ const AddNationalTeamForm = ({ onSubmit, onCancel, initialData = null }) => {
           </div>
         </div>
 
-        {/* Form Actions */}
-        <div className="sticky bottom-0 bg-white pt-4 mt-6 border-t flex justify-end gap-4">
-          <Button
+        <div className="flex justify-end gap-4">
+          <button
             type="button"
-            variant="outline"
-            onClick={onCancel}
+            onClick={() => console.log('Cancel')}
+            className="border border-gray-300 rounded-lg p-2 text-gray-700 hover:bg-gray-100"
           >
             Cancel
-          </Button>
-          <Button
+          </button>
+          <button
             type="submit"
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg p-2"
           >
             {initialData ? 'Update Team' : 'Add Team'}
-          </Button>
+          </button>
         </div>
       </form>
     </div>
   );
 };
 
-export default AddNationalTeamForm; 
+export default AddNationalTeamForm;
