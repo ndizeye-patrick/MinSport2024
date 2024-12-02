@@ -7,6 +7,7 @@ import { Button } from '../components/ui/Button';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../components/ui/Table';
 import axiosInstance from '../utils/axiosInstance';
 import Modal from '../components/ui/Modal';
+// import SportsProfessionals from '../components/SportsProfessionals';
 
 const SportsProfessionals = () => {
   const [professionals, setProfessionals] = useState([]);
@@ -29,6 +30,7 @@ const SportsProfessionals = () => {
   const [editingFunction, setEditingFunction] = useState(null);
   const [addingFunction, setAddingFunction] = useState(null);
   const [editingProfessional, setEditingProfessional] = useState(null);
+  const [addingProfessional, seAddingProfessional] = useState(null);
 
   useEffect(() => {
     const fetchDisciplines = async () => {
@@ -60,7 +62,7 @@ const SportsProfessionals = () => {
     const fetchProfessionals = async () => {
       try {
         setIsLoading(true);
-        const response = await axiosInstance.get('/professionals');
+        const response = await axiosInstance.get('/official-referees');
         setProfessionals(response.data);
         setFilteredProfessionals(response.data);
         setIsLoading(false);
@@ -182,7 +184,7 @@ const SportsProfessionals = () => {
   // Handlers for Sports Professionals
   const handleAddProfessional = async () => {
     try {
-      const response = await axiosInstance.post('/professionals', professionalForm);
+      const response = await axiosInstance.post('/official-referees', professionalForm);
       setProfessionals((prevState) => [...prevState, response.data]);
       setFilteredProfessionals((prevState) => [...prevState, response.data]);
       toast.success('Professional added successfully');
@@ -194,7 +196,7 @@ const SportsProfessionals = () => {
 
   const handleEditProfessional = async () => {
     try {
-      const response = await axiosInstance.put(`/professionals/${editingProfessional.id}`, professionalForm);
+      const response = await axiosInstance.put(`/official-referees/${editingProfessional.id}`, professionalForm);
       setProfessionals((prevState) =>
         prevState.map((p) => (p.id === editingProfessional.id ? response.data : p))
       );
@@ -211,7 +213,7 @@ const SportsProfessionals = () => {
 
   const handleDeleteProfessional = async (professional) => {
     try {
-      await axiosInstance.delete(`/professionals/${professional.id}`);
+      await axiosInstance.delete(`/official-referees/${professional.id}`);
       setProfessionals((prevState) => prevState.filter((p) => p.id !== professional.id));
       setFilteredProfessionals((prevState) => prevState.filter((p) => p.id !== professional.id));
       toast.success('Professional deleted successfully');
@@ -262,18 +264,18 @@ const SportsProfessionals = () => {
 
   const renderProfessionalRow = (professional) => (
     <tr key={professional.id}>
-      <td>{professional.name}</td>
-      <td>{professional.username}</td>
-      <td>{professional.phone}</td>
+      <td>{professional.firstName}</td>
+      <td>{professional.lastName}</td>
+      <td>{professional.function}</td>
       <td>{professional.nationality}</td>
       <td>
         <button
           onClick={() => {
             setEditingProfessional(professional);
             setProfessionalForm({
-              name: professional.name,
-              username: professional.username,
-              phone: professional.phone,
+              name: professional.firstNamename,
+              username: professional.lastName,
+              phone: professional.function,
               nationality: professional.nationality,
             });
           }}
