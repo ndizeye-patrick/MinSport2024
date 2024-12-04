@@ -193,8 +193,25 @@ function Academies() {
                       <td className="px-4 py-3 text-sm">{academy.location}</td>
                       <td className="px-4 py-3 text-sm">{academy.category}</td>
                       <td className="px-4 py-3 text-sm">{academy.students || '-'}</td>
-                      <td className="px-4 py-3">
-                        {/* Add actions here */}
+                      <td className="px-4 py-3 flex gap-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedAcademy(academy);
+                            setIsEditModalOpen(true);
+                          }}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedAcademy(academy);
+                            setIsDeleteModalOpen(true);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-600" />
+                        </Button>
                       </td>
                     </tr>
                   ))}
@@ -245,8 +262,25 @@ function Academies() {
                       <td className="px-4 py-3 text-sm">{student.class}</td>
                       <td className="px-4 py-3 text-sm">{student.game}</td>
                       <td className="px-4 py-3 text-sm">{student.gender}</td>
-                      <td className="px-4 py-3">
-                        {/* Add student actions here */}
+                      <td className="px-4 py-3 flex gap-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedStudent(student);
+                            setIsEditStudentModalOpen(true);
+                          }}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedStudent(student);
+                            setIsDeleteStudentModalOpen(true);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-600" />
+                        </Button>
                       </td>
                     </tr>
                   ))}
