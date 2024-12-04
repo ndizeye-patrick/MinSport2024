@@ -1,14 +1,14 @@
-import React, { Fragment, useState } from 'react';
+import React, { Fragment, useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { X, Search } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import toast from 'react-hot-toast';
 import axiosInstance from '../utils/axiosInstance';
 import data from '../data/data.json';
 
-function AddAcademyStudent({ isOpen, onClose, onAdd }) {
+function AddAcademyStudent({ isOpen, onClose, onAdd, studentData = null, isEditing = false }) {
   const { isDarkMode } = useTheme();
   const [formData, setFormData] = useState({
     photo_passport: null,
@@ -29,6 +29,30 @@ function AddAcademyStudent({ isOpen, onClose, onAdd }) {
     contact: ''
   });
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [academies, setAcademies] = useState([]);
+
+  useEffect(() => {
+    const fetchAcademies = async () => {
+      try {
+        const response = await axiosInstance.get('/academies');
+        setAcademies(response.data);
+      } catch (error) {
+        console.error('Error fetching academies:', error);
+        toast.error('Failed to fetch academies');
+      }
+    };
+
+    fetchAcademies();
+  }, []);
+
+  useEffect(() => {
+    if (studentData) {
+      setFormData(studentData);
+      if (studentData.photo_passport) {
+        setPreviewUrl(URL.createObjectURL(studentData.photo_passport));
+      }
+    }
+  }, [studentData]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -55,14 +79,25 @@ function AddAcademyStudent({ isOpen, onClose, onAdd }) {
         formDataToSend.append(key, formData[key]);
       });
 
-      await axiosInstance.post('/academy-students', formDataToSend, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      if (isEditing) {
+        
+        await axiosInstance.put(`/academy-students/${formData.id}`, formDataToSend, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        toast.success('Student updated successfully');
+      } else {
+        await axiosInstance.post('/academy-students', formDataToSend, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        toast.success('Student added successfully');
+      }
+
       onAdd(formData);
       onClose();
-      toast.success('Student added successfully');
     } catch (error) {
       toast.error(error.message);
     }
@@ -90,7 +125,7 @@ function AddAcademyStudent({ isOpen, onClose, onAdd }) {
             } p-6 text-left align-middle shadow-xl transition-all`}>
               <div className="flex justify-between items-center mb-6">
                 <Dialog.Title className="text-xl font-bold">
-                  Add Academy Student
+                  {isEditing ? 'Edit Academy Student' : 'Add Academy Student'}
                 </Dialog.Title>
                 <button
                   onClick={onClose}
@@ -267,13 +302,17 @@ function AddAcademyStudent({ isOpen, onClose, onAdd }) {
                     <label className="block mb-1 text-sm font-medium">
                       School/Academy Name <span className="text-red-500">*</span>
                     </label>
-                    <Input
-                      type="text"
+                    <select
                       value={formData.nameOfSchoolAcademyTrainingCenter}
                       onChange={(e) => setFormData(prev => ({ ...prev, nameOfSchoolAcademyTrainingCenter: e.target.value }))}
                       required
-                      placeholder="Enter school/academy name"
-                    />
+                      className="w-full border rounded-lg p-2"
+                    >
+                      <option value="">Select School/Academy</option>
+                      {academies.map(academy => (
+                        <option key={academy.id} value={academy.name}>{academy.name}</option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block mb-1 text-sm font-medium">
@@ -338,7 +377,7 @@ function AddAcademyStudent({ isOpen, onClose, onAdd }) {
                     type="submit"
                     className="bg-blue-600 hover:bg-blue-700 text-white"
                   >
-                    Add Student
+                    {isEditing ? 'Update Student' : 'Add Student'}
                   </Button>
                 </div>
               </form>
