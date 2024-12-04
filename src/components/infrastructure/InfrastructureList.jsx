@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Table,
   TableHeader,
@@ -11,12 +11,13 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Select } from '../ui/select';
 import { Eye, Edit, Trash2, MapPin, Search, Filter } from 'lucide-react';
-import { useInfrastructure } from '../../contexts/InfrastructureContext';
 import { toast } from 'sonner';
 import ExportButton from './ExportButton';
+import axiosInstance from '../../utils/axiosInstance';
 
 const InfrastructureList = () => {
-  const { infrastructures, categories } = useInfrastructure();
+  const [infrastructures, setInfrastructures] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
     category: '',
@@ -30,11 +31,38 @@ const InfrastructureList = () => {
   const provinces = ['Kigali City', 'Eastern', 'Western', 'Northern', 'Southern'];
   const statuses = ['Active', 'Under Construction', 'Under Maintenance', 'Inactive'];
 
+  useEffect(() => {
+    fetchInfrastructures();
+    fetchCategories();
+  }, []);
+
+  const fetchInfrastructures = async () => {
+    try {
+      const response = await axiosInstance.get('/infrastructures');
+      setInfrastructures(response.data);
+    } catch (error) {
+      console.error('Error fetching infrastructures:', error);
+      toast.error('Failed to fetch infrastructures');
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await axiosInstance.get('/infrastructure-categories');
+      setCategories(response.data);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      toast.error('Failed to fetch categories');
+    }
+  };
+
   const handleDelete = async (id) => {
     try {
-      // API call to delete infrastructure
+      await axiosInstance.delete(`/infrastructures/${id}`);
+      setInfrastructures(prev => prev.filter(infra => infra.id !== id));
       toast.success('Infrastructure deleted successfully');
     } catch (error) {
+      console.error('Failed to delete infrastructure:', error);
       toast.error('Failed to delete infrastructure');
     }
   };
@@ -42,13 +70,13 @@ const InfrastructureList = () => {
   const filteredInfrastructures = infrastructures.filter(infra => {
     const matchesSearch = searchTerm === '' || 
       infra.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      infra.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      infra.location.district.toLowerCase().includes(searchTerm.toLowerCase());
+      infra.infra_category.toString().includes(searchTerm.toLowerCase()) ||
+      infra.location_district.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesCategory = filters.category === '' || infra.category === filters.category;
+    const matchesCategory = filters.category === '' || infra.infra_category.toString() === filters.category;
     const matchesStatus = filters.status === '' || infra.status === filters.status;
-    const matchesProvince = filters.province === '' || infra.location.province === filters.province;
-    const matchesDistrict = filters.district === '' || infra.location.district === filters.district;
+    const matchesProvince = filters.province === '' || infra.location_province === filters.province;
+    const matchesDistrict = filters.district === '' || infra.location_district === filters.district;
 
     return matchesSearch && matchesCategory && matchesStatus && matchesProvince && matchesDistrict;
   });
@@ -56,18 +84,10 @@ const InfrastructureList = () => {
   const prepareExportData = () => {
     return filteredInfrastructures.map(infra => ({
       Name: infra.name,
-      Category: infra.category,
-      'Sub Category': infra.subCategory,
-      Type: infra.type,
+      Category: infra.infra_category,
       Status: infra.status,
       Capacity: infra.capacity,
-      Province: infra.location.province,
-      District: infra.location.district,
-      'Plot Area': infra.plotArea,
-      Owner: infra.owner,
-      'Legal Representative': infra.legalRepresentative.name,
-      Email: infra.legalRepresentative.email,
-      Phone: infra.legalRepresentative.phone
+      Location: `${infra.location_province}, ${infra.location_district}`
     }));
   };
 
@@ -116,8 +136,8 @@ const InfrastructureList = () => {
               onChange={(e) => setFilters({ ...filters, category: e.target.value })}
             >
               <option value="">All Categories</option>
-              {Object.keys(categories).map(category => (
-                <option key={category} value={category}>{category}</option>
+              {categories.map(category => (
+                <option key={category.id} value={category.id}>{category.name}</option>
               ))}
             </Select>
           </div>
@@ -171,9 +191,9 @@ const InfrastructureList = () => {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Category</TableHead>
-              <TableHead>Location</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Capacity</TableHead>
+              <TableHead>Location</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -181,8 +201,7 @@ const InfrastructureList = () => {
             {filteredInfrastructures.map((infra) => (
               <TableRow key={infra.id}>
                 <TableCell className="font-medium">{infra.name}</TableCell>
-                <TableCell>{infra.category}</TableCell>
-                <TableCell>{`${infra.location.district}, ${infra.location.province}`}</TableCell>
+                <TableCell>{infra.infra_category}</TableCell>
                 <TableCell>
                   <span className={`px-2 py-1 rounded-full text-xs ${
                     infra.status === 'Active' 
@@ -197,6 +216,9 @@ const InfrastructureList = () => {
                   </span>
                 </TableCell>
                 <TableCell>{infra.capacity}</TableCell>
+                <TableCell>
+                  {`${infra.location_province}, ${infra.location_district}`}
+                </TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
                     <Button size="sm" variant="ghost" title="View Details">
@@ -228,4 +250,4 @@ const InfrastructureList = () => {
   );
 };
 
-export default InfrastructureList; 
+export default InfrastructureList;

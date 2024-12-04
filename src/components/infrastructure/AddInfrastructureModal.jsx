@@ -1,9 +1,9 @@
+/* src/components/infrastructure/AddInfrastructureModal.jsx */
 import React, { useState } from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Select } from '../ui/select';
-import { Checkbox } from '../ui/checkbox';
 import { Textarea } from '../ui/textarea';
 import { toast } from 'sonner';
 import { useInfrastructure } from '../../contexts/InfrastructureContext';
@@ -15,48 +15,23 @@ const AddInfrastructureModal = ({ isOpen, onClose }) => {
   const { categories, addInfrastructure } = useInfrastructure();
   const [formData, setFormData] = useState({
     name: '',
-    category: '',
-    subCategory: '',
-    type: '',
+    infra_category: 1,
+    infra_sub_category: 1,
+    type_level: '',
     status: '',
-    capacity: '',
+    capacity: 1,
     description: '',
-    location: {
-      province: '',
-      district: '',
-      sector: '',
-      cell: '',
-      village: '',
-    },
-    coordinates: {
-      latitude: '',
-      longitude: '',
-    },
+    location_province: '',
+    location_district: '',
+    location_sector: '',
+    location_cell: '',
+    location_village: '',
+    latitude: 1,
+    longitude: 1,
     upi: '',
-    plotArea: '',
-    constructionDate: '',
+    plot_area: 1,
+    construction_date: '',
     owner: '',
-    mainUsers: '',
-    sportsTypes: {
-      football: false,
-      basketball: false,
-      handball: false,
-      volleyball: false,
-      tennis: false,
-    },
-    services: {
-      internet: false,
-      electricity: false,
-      water: false,
-      accessRoad: false,
-      healthFacility: false,
-    },
-    legalRepresentative: {
-      name: '',
-      gender: '',
-      email: '',
-      phone: '',
-    },
   });
   const [errors, setErrors] = useState({});
   const [locationData, setLocationData] = useState({
@@ -70,48 +45,23 @@ const AddInfrastructureModal = ({ isOpen, onClose }) => {
   const handleClose = () => {
     setFormData({
       name: '',
-      category: '',
-      subCategory: '',
-      type: '',
+      infra_category: 1,
+      infra_sub_category: 1,
+      type_level: '',
       status: '',
-      capacity: '',
+      capacity: 1,
       description: '',
-      location: {
-        province: '',
-        district: '',
-        sector: '',
-        cell: '',
-        village: '',
-      },
-      coordinates: {
-        latitude: '',
-        longitude: '',
-      },
+      location_province: '',
+      location_district: '',
+      location_sector: '',
+      location_cell: '',
+      location_village: '',
+      latitude: 1,
+      longitude: 1,
       upi: '',
-      plotArea: '',
-      constructionDate: '',
+      plot_area: 1,
+      construction_date: '',
       owner: '',
-      mainUsers: '',
-      sportsTypes: {
-        football: false,
-        basketball: false,
-        handball: false,
-        volleyball: false,
-        tennis: false,
-      },
-      services: {
-        internet: false,
-        electricity: false,
-        water: false,
-        accessRoad: false,
-        healthFacility: false,
-      },
-      legalRepresentative: {
-        name: '',
-        gender: '',
-        email: '',
-        phone: '',
-      },
     });
     setErrors({});
     onClose();
@@ -166,87 +116,46 @@ const AddInfrastructureModal = ({ isOpen, onClose }) => {
   };
 
   const handleLocationChange = (field, value) => {
-    setFormData(prev => {
-      const newLocation = {
-        ...prev.location,
-        [field]: value
-      };
-
-      // Reset dependent fields
-      switch (field) {
-        case 'province':
-          newLocation.district = '';
-          newLocation.sector = '';
-          newLocation.cell = '';
-          newLocation.village = '';
-          // Update available districts
-          setLocationData(prev => ({
-            ...prev,
-            districts: locations.districts[value] || [],
-            sectors: [],
-            cells: [],
-            villages: []
-          }));
-          break;
-        case 'district':
-          newLocation.sector = '';
-          newLocation.cell = '';
-          newLocation.village = '';
-          // Update available sectors
-          setLocationData(prev => ({
-            ...prev,
-            sectors: locations.sectors[value] || [],
-            cells: [],
-            villages: []
-          }));
-          break;
-        case 'sector':
-          newLocation.cell = '';
-          newLocation.village = '';
-          // Update available cells
-          setLocationData(prev => ({
-            ...prev,
-            cells: locations.cells[value] || [],
-            villages: []
-          }));
-          break;
-        case 'cell':
-          newLocation.village = '';
-          // Update available villages
-          setLocationData(prev => ({
-            ...prev,
-            villages: locations.villages[value] || []
-          }));
-          break;
-        default:
-          break;
-      }
-
-      return {
-        ...prev,
-        location: newLocation
-      };
-    });
-  };
-
-  const handleCoordinatesChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
-      coordinates: {
-        ...prev.coordinates,
-        [field]: value
-      }
+      [field]: value
     }));
-  };
 
-  const handleLegalRepChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      legalRepresentative: {
-        ...prev.legalRepresentative,
-        [field]: value
-      }
-    }));
+    // Reset dependent fields
+    switch (field) {
+      case 'location_province':
+        setLocationData(prev => ({
+          ...prev,
+          districts: locations.districts[value] || [],
+          sectors: [],
+          cells: [],
+          villages: []
+        }));
+        break;
+      case 'location_district':
+        setLocationData(prev => ({
+          ...prev,
+          sectors: locations.sectors[value] || [],
+          cells: [],
+          villages: []
+        }));
+        break;
+      case 'location_sector':
+        setLocationData(prev => ({
+          ...prev,
+          cells: locations.cells[value] || [],
+          villages: []
+        }));
+        break;
+      case 'location_cell':
+        setLocationData(prev => ({
+          ...prev,
+          villages: locations.villages[value] || []
+        }));
+        break;
+      default:
+        break;
+    }
   };
 
   const renderError = (field) => {
@@ -306,16 +215,17 @@ const AddInfrastructureModal = ({ isOpen, onClose }) => {
                   <div>
                     <label className="block text-sm font-medium mb-1">Category</label>
                     <Select
-                      value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      value={formData.infra_category}
+                      onChange={(e) => setFormData({ ...formData, infra_category: parseInt(e.target.value) })}
                       required
+                      className="w-full"
                     >
                       <option value="">Select Category</option>
                       {Object.keys(categories).map(category => (
                         <option key={category} value={category}>{category}</option>
                       ))}
                     </Select>
-                    {renderError('category')}
+                    {renderError('infra_category')}
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Status</label>
@@ -323,6 +233,7 @@ const AddInfrastructureModal = ({ isOpen, onClose }) => {
                       value={formData.status}
                       onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                       required
+                      className="w-full"
                     >
                       <option value="">Select Status</option>
                       <option value="Active">Active</option>
@@ -337,8 +248,9 @@ const AddInfrastructureModal = ({ isOpen, onClose }) => {
                     <Input
                       type="number"
                       value={formData.capacity}
-                      onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, capacity: parseInt(e.target.value) })}
                       required
+                      className="w-full"
                     />
                     {renderError('capacity')}
                   </div>
@@ -363,6 +275,7 @@ const AddInfrastructureModal = ({ isOpen, onClose }) => {
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows={3}
                     required
+                    className="w-full"
                   />
                   {renderError('description')}
                 </div>
@@ -384,8 +297,8 @@ const AddInfrastructureModal = ({ isOpen, onClose }) => {
                   <div>
                     <label className="block text-sm font-medium mb-2">Province</label>
                     <Select
-                      value={formData.location.province}
-                      onChange={(e) => handleLocationChange('province', e.target.value)}
+                      value={formData.location_province}
+                      onChange={(e) => handleLocationChange('location_province', e.target.value)}
                       required
                       className="w-full"
                     >
@@ -394,17 +307,17 @@ const AddInfrastructureModal = ({ isOpen, onClose }) => {
                         <option key={province} value={province}>{province}</option>
                       ))}
                     </Select>
-                    {renderError('location.province')}
+                    {renderError('location_province')}
                   </div>
 
                   {/* District */}
                   <div>
                     <label className="block text-sm font-medium mb-2">District</label>
                     <Select
-                      value={formData.location.district}
-                      onChange={(e) => handleLocationChange('district', e.target.value)}
+                      value={formData.location_district}
+                      onChange={(e) => handleLocationChange('location_district', e.target.value)}
                       required
-                      disabled={!formData.location.province}
+                      disabled={!formData.location_province}
                       className="w-full"
                     >
                       <option value="">Select District</option>
@@ -412,17 +325,17 @@ const AddInfrastructureModal = ({ isOpen, onClose }) => {
                         <option key={district} value={district}>{district}</option>
                       ))}
                     </Select>
-                    {renderError('location.district')}
+                    {renderError('location_district')}
                   </div>
 
                   {/* Sector */}
                   <div>
                     <label className="block text-sm font-medium mb-2">Sector</label>
                     <Select
-                      value={formData.location.sector}
-                      onChange={(e) => handleLocationChange('sector', e.target.value)}
+                      value={formData.location_sector}
+                      onChange={(e) => handleLocationChange('location_sector', e.target.value)}
                       required
-                      disabled={!formData.location.district}
+                      disabled={!formData.location_district}
                       className="w-full"
                     >
                       <option value="">Select Sector</option>
@@ -430,17 +343,17 @@ const AddInfrastructureModal = ({ isOpen, onClose }) => {
                         <option key={sector} value={sector}>{sector}</option>
                       ))}
                     </Select>
-                    {renderError('location.sector')}
+                    {renderError('location_sector')}
                   </div>
 
                   {/* Cell */}
                   <div>
                     <label className="block text-sm font-medium mb-2">Cell</label>
                     <Select
-                      value={formData.location.cell}
-                      onChange={(e) => handleLocationChange('cell', e.target.value)}
+                      value={formData.location_cell}
+                      onChange={(e) => handleLocationChange('location_cell', e.target.value)}
                       required
-                      disabled={!formData.location.sector}
+                      disabled={!formData.location_sector}
                       className="w-full"
                     >
                       <option value="">Select Cell</option>
@@ -448,17 +361,17 @@ const AddInfrastructureModal = ({ isOpen, onClose }) => {
                         <option key={cell} value={cell}>{cell}</option>
                       ))}
                     </Select>
-                    {renderError('location.cell')}
+                    {renderError('location_cell')}
                   </div>
 
                   {/* Village */}
                   <div>
                     <label className="block text-sm font-medium mb-2">Village</label>
                     <Select
-                      value={formData.location.village}
-                      onChange={(e) => handleLocationChange('village', e.target.value)}
+                      value={formData.location_village}
+                      onChange={(e) => handleLocationChange('location_village', e.target.value)}
                       required
-                      disabled={!formData.location.cell}
+                      disabled={!formData.location_cell}
                       className="w-full"
                     >
                       <option value="">Select Village</option>
@@ -466,7 +379,7 @@ const AddInfrastructureModal = ({ isOpen, onClose }) => {
                         <option key={village} value={village}>{village}</option>
                       ))}
                     </Select>
-                    {renderError('location.village')}
+                    {renderError('location_village')}
                   </div>
                 </div>
               </section>
@@ -486,79 +399,81 @@ const AddInfrastructureModal = ({ isOpen, onClose }) => {
                   <div>
                     <label className="block text-sm font-medium mb-2">Latitude</label>
                     <Input
-                      type="text"
-                      value={formData.coordinates.latitude}
-                      onChange={(e) => handleCoordinatesChange('latitude', e.target.value)}
+                      type="number"
+                      value={formData.latitude}
+                      onChange={(e) => setFormData({ ...formData, latitude: parseFloat(e.target.value) })}
                       required
+                      className="w-full"
                     />
-                    {renderError('coordinates.latitude')}
+                    {renderError('latitude')}
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-2">Longitude</label>
                     <Input
-                      type="text"
-                      value={formData.coordinates.longitude}
-                      onChange={(e) => handleCoordinatesChange('longitude', e.target.value)}
+                      type="number"
+                      value={formData.longitude}
+                      onChange={(e) => setFormData({ ...formData, longitude: parseFloat(e.target.value) })}
                       required
+                      className="w-full"
                     />
-                    {renderError('coordinates.longitude')}
+                    {renderError('longitude')}
                   </div>
                 </div>
               </section>
 
-              {/* Legal Representative */}
+              {/* Additional Information */}
               <section>
                 <div className="mb-6">
                   <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-                    Legal Representative
+                    Additional Information
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Enter the legal representative details
+                    Provide additional details about the infrastructure
                   </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Name</label>
+                    <label className="block text-sm font-medium mb-2">UPI</label>
                     <Input
-                      value={formData.legalRepresentative.name}
-                      onChange={(e) => handleLegalRepChange('name', e.target.value)}
+                      value={formData.upi}
+                      onChange={(e) => setFormData({ ...formData, upi: e.target.value })}
                       required
+                      className="w-full"
                     />
-                    {renderError('legalRepresentative.name')}
+                    {renderError('upi')}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Gender</label>
-                    <Select
-                      value={formData.legalRepresentative.gender}
-                      onChange={(e) => handleLegalRepChange('gender', e.target.value)}
+                    <label className="block text-sm font-medium mb-2">Plot Area</label>
+                    <Input
+                      type="number"
+                      value={formData.plot_area}
+                      onChange={(e) => setFormData({ ...formData, plot_area: parseFloat(e.target.value) })}
                       required
-                    >
-                      <option value="">Select Gender</option>
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                    </Select>
-                    {renderError('legalRepresentative.gender')}
+                      className="w-full"
+                    />
+                    {renderError('plot_area')}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Email</label>
+                    <label className="block text-sm font-medium mb-2">Construction Date</label>
                     <Input
-                      type="email"
-                      value={formData.legalRepresentative.email}
-                      onChange={(e) => handleLegalRepChange('email', e.target.value)}
+                      type="date"
+                      value={formData.construction_date}
+                      onChange={(e) => setFormData({ ...formData, construction_date: e.target.value })}
                       required
+                      className="w-full"
                     />
-                    {renderError('legalRepresentative.email')}
+                    {renderError('construction_date')}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Phone</label>
+                    <label className="block text-sm font-medium mb-2">Owner</label>
                     <Input
-                      type="tel"
-                      value={formData.legalRepresentative.phone}
-                      onChange={(e) => handleLegalRepChange('phone', e.target.value)}
+                      value={formData.owner}
+                      onChange={(e) => setFormData({ ...formData, owner: e.target.value })}
                       required
+                      className="w-full"
                     />
-                    {renderError('legalRepresentative.phone')}
+                    {renderError('owner')}
                   </div>
                 </div>
               </section>
@@ -592,4 +507,4 @@ const AddInfrastructureModal = ({ isOpen, onClose }) => {
   );
 };
 
-export default AddInfrastructureModal; 
+export default AddInfrastructureModal;

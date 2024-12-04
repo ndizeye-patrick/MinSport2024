@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Plus, MapPin, Filter, Search } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import InfrastructureMap from '../components/infrastructure/InfrastructureMap';
 import InfrastructureList from '../components/infrastructure/InfrastructureList';
@@ -8,16 +8,48 @@ import BookingManagement from '../components/infrastructure/BookingManagement';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
 import { useDarkMode } from '../contexts/DarkModeContext';
 import CategoryManagementModal from '../components/infrastructure/CategoryManagementModal';
-import { useInfrastructure } from '../contexts/InfrastructureContext';
+import axiosInstance from '../utils/axiosInstance';
 
 const Infrastructure = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [activeTab, setActiveTab] = useState('list');
   const { isDarkMode } = useDarkMode();
-  const { categories, updateCategories } = useInfrastructure();
+  const [categories, setCategories] = useState([]);
+  const [infrastructure, setInfrastructure] = useState([]);
 
-  // Only show Add Infrastructure button on list view
+  useEffect(() => {
+    fetchCategories();
+    fetchInfrastructure();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await axiosInstance.get('/infrastructure-categories');
+      setCategories(response.data);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
+
+  const fetchInfrastructure = async () => {
+    try {
+      const response = await axiosInstance.get('/infrastructures');
+      setInfrastructure(response.data);
+    } catch (error) {
+      console.error('Error fetching infrastructure:', error);
+    }
+  };
+
+  const updateCategories = async (updatedCategories) => {
+    try {
+      await axiosInstance.put('/infrastructure-categories', updatedCategories);
+      setCategories(updatedCategories);
+    } catch (error) {
+      console.error('Error updating categories:', error);
+    }
+  };
+
   const showAddButton = activeTab === 'list';
 
   return (
@@ -52,7 +84,6 @@ const Infrastructure = () => {
         </div>
       </div>
 
-      {/* View Toggle */}
       <Tabs defaultValue="list" className="mb-6" value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="list">
@@ -67,11 +98,11 @@ const Infrastructure = () => {
         </TabsList>
 
         <TabsContent value="list">
-          <InfrastructureList />
+          <InfrastructureList infrastructure={infrastructure} />
         </TabsContent>
 
         <TabsContent value="map">
-          <InfrastructureMap />
+          <InfrastructureMap infrastructure={infrastructure} />
         </TabsContent>
 
         <TabsContent value="bookings">
@@ -79,13 +110,12 @@ const Infrastructure = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Add Infrastructure Modal */}
       <AddInfrastructureModal 
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
+        onAdd={fetchInfrastructure}
       />
 
-      {/* Category Management Modal */}
       <CategoryManagementModal
         isOpen={showCategoryModal}
         onClose={() => setShowCategoryModal(false)}
@@ -96,4 +126,4 @@ const Infrastructure = () => {
   );
 };
 
-export default Infrastructure; 
+export default Infrastructure;
