@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Fragment } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
+import { Input } from '../components/ui/input';
 import { Loader2, Edit, Download, Trash2, AlertTriangle, Eye, X } from 'lucide-react';
 import AddEmployeeModal from '../components/AddEmployeeModal';
 import EditEmployeeModal from '../components/EditEmployeeModal';

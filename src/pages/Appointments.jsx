@@ -2,7 +2,7 @@ import React, { useEffect, useState, Fragment } from "react";
 import axiosInstance from "../utils/axiosInstance";
 import { Dialog, Transition } from "@headlessui/react";
 import { Button } from "../components/ui/Button";
-import { Input } from "../components/ui/Input";
+import { Input } from "../components/ui/input";
 import { Search } from "react-feather";
 import { AlertCircle } from "lucide-react";
 import { Calendar, Loader2, Edit, Download, Trash2, AlertTriangle, Eye, X } from 'lucide-react';
