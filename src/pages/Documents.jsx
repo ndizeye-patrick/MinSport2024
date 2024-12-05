@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { AlertCircle } from 'lucide-react';
 
 function Documents() {
+
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -20,6 +21,17 @@ function Documents() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState(null);
   const [viewModalOpen, setViewModalOpen] = useState(false); // State for view modal
+
+  const path  = window.location.pathname;
+
+  const allowedPaths = localStorage.getItem("accessibleLinks");
+
+  console.log(allowedPaths, path);
+
+  // if (!allowedPaths.path.includes(path)) {
+  //   return <Navigate to="/unauthorized" />;
+  // }
+
 
   useEffect(() => {
     const fetchDocuments = async () => {

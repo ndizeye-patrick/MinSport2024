@@ -28,13 +28,16 @@ function Login() {
     try {
       // Perform login and get the logged-in user data
       const loggedInUser = await login(formData.email, formData.password);
+      localStorage.setItem('isAuthenticated', 'true');
 
       if (formData.rememberMe) {
         localStorage.setItem('rememberMe', 'true');
       }
 
       // Log user details to the console
-      console.log('Logged-in User Details:', loggedInUser);
+      // console.log('Logged-in User Detailstgrfgygyu:', loggedInUser.user.groupId);
+      localStorage.setItem('userRole', loggedInUser.user.groupId);
+      console.log('User Dat',localStorage.getItem('userRole'));
 
       navigate('/dashboard');
     } catch (error) {
@@ -64,11 +67,13 @@ function Login() {
         <div className="bg-white rounded-lg shadow-sm p-8">
           <h2 className="text-xl font-semibold mb-2">Login to continue</h2>
           <p className="text-gray-500 mb-6">Welcome back, enter your credentials to continue</p>
-
+          
           {/* Error message display */}
           {errorMessage && (
-            <div className="text-red-500 mb-4 text-sm">
-              {errorMessage}
+            <div className="text-red-500 align-center center flex justify-center   font-semibold  w-full h-25  bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 text-sm">
+              {
+                errorMessage.includes("401") ? "Invalid credentials" : errorMessage
+              }
             </div>
           )}
 

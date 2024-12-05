@@ -67,14 +67,14 @@ const AddAppointmentForm = ({ onSubmit, onCancel }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-5 gap-5">
       {error && (
         <div className="bg-red-50 text-red-600 p-3 rounded-lg">
           <span>{error}</span>
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div className="flex flex-col">
           <label className="mb-1 text-sm font-medium">
             Person to Meet
@@ -235,7 +235,7 @@ const AddAppointmentForm = ({ onSubmit, onCancel }) => {
       </div>
 
       <div className="flex justify-between mt-6">
-        <Button type="button" onClick={onCancel}>Cancel</Button>
+        {/* <Button type="button" onClick={onClose}>Cancel</Button> */}
         <Button type="submit" disabled={loading}>
           {loading ? 'Submitting...' : 'Submit Appointment'}
         </Button>

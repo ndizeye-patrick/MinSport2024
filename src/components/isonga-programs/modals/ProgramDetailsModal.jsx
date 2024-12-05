@@ -1,4 +1,4 @@
-import { Modal } from '../../ui/modal';
+import { Modal } from '../../ui/Modal';
 
 export function ProgramDetailsModal({ isOpen, onClose, program }) {
   if (!program) return null;
@@ -17,7 +17,7 @@ export function ProgramDetailsModal({ isOpen, onClose, program }) {
           </h3>
           <div className="grid grid-cols-2 gap-4">
             {/* ... Basic info fields ... */}
-          </div>
+                     </div>
         </div>
         {/* ... Other sections ... */}
       </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -23,6 +23,44 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { useDarkMode } from '../contexts/DarkModeContext';
+
+// Define roles and their accessible paths
+const roleAccess = {
+  admin: [
+    "/dashboard",
+    "/national-teams",
+    "/federations",
+    "/sports-professionals",
+    "/trainings",
+    "/isonga-programs",
+    "/academies",
+    "/infrastructure",
+    "/sports-tourism",
+    "/documents",
+    "/contracts",
+    "/appointments",
+    "/employee",
+    "/users",
+    "/partners",
+    "/reports",
+    "/sports-for-all",
+    "/settings"
+  ],
+  1: [
+    "/dashboard",
+    "/national-teams",
+    "/sports-tourism",
+    "/documents",
+    "/appointments",
+    "/sports-for-all",
+    "/settings"
+  ],
+  guest: [
+    "/dashboard",
+    "/sports-tourism",
+    "/settings"
+  ]
+};
 
 const sidebarLinks = [
   {
@@ -124,6 +162,19 @@ const Sidebar = () => {
   const { isDarkMode } = useDarkMode();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const location = useLocation();
+  const [userRole, setUserRole] = useState('guest');
+ 
+  alert(userRole);
+  // Fetch user role from localStorage
+  useEffect(() => {
+    const storedUserRole = localStorage.getItem('userRole');
+    if (storedUserRole) {
+      setUserRole(storedUserRole);
+    }
+  }, []);
+  console.log('xx:',userRole);
+  // Filter links based on user role
+  const accessibleLinks = sidebarLinks.filter(link => roleAccess[userRole]?.includes(link.path));
 
   return (
     <aside 
@@ -133,11 +184,12 @@ const Sidebar = () => {
         border-r ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}
     >
       {/* Logo and Toggle Button */}
+     
       <div className={`flex items-center justify-between h-16 px-4 ${
         isDarkMode ? 'border-gray-700' : 'border-gray-200'
       } border-b`}>
         {!isCollapsed && (
-          <img src="/logo/logo.svg" alt="Logo" className="h-8" />
+          <img src="https://dashboard.codeparrot.ai/api/assets/Z1Gz-0mqC8VE7xqc" alt="Logo" className="h-8" />
         )}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
@@ -154,7 +206,7 @@ const Sidebar = () => {
 
       {/* Navigation Links */}
       <nav className="flex-1 overflow-y-auto py-4">
-        {sidebarLinks.map((link) => {
+        {accessibleLinks.map((link) => {
           const Icon = link.icon;
           const isActive = location.pathname === link.path;
 
@@ -189,7 +241,6 @@ const Sidebar = () => {
           );
         })}
       </nav>
-
       {/* Settings Link */}
       <div className={`p-4 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
         <NavLink
@@ -208,4 +259,4 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar; 
+export default Sidebar;

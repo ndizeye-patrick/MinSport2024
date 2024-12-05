@@ -10,12 +10,12 @@ const LiveMatches = () => {
       homeTeam: {
         name: 'APR FC',
         score: 2,
-        logo: '/teams/apr.png'
+        logo: '/teams/apr.svg'
       },
       awayTeam: {
         name: 'Amagaju',
         score: 4,
-        logo: '/teams/amagaju.png'
+        logo: '/teams/amagaju.svg'
       },
       time: '33:30',
       venue: 'Amahoro Stadium',
@@ -27,12 +27,12 @@ const LiveMatches = () => {
       homeTeam: {
         name: 'REG',
         score: 2,
-        logo: '/teams/reg.png'
+        logo: '/teams/reg.svg'
       },
       awayTeam: {
         name: 'Patriots',
         score: 4,
-        logo: '/teams/patriots.png'
+        logo: '/teams/patriots.svg'
       },
       time: '33:30',
       venue: 'BK ARENA',
@@ -44,12 +44,12 @@ const LiveMatches = () => {
       homeTeam: {
         name: 'BUGESERA FC',
         score: 2,
-        logo: '/teams/bugesera.png'
+        logo: '/teams/bugesera.svg'
       },
       awayTeam: {
         name: 'Amagaju',
         score: 4,
-        logo: '/teams/amagaju.png'
+        logo: '/teams/amagaju.svg'
       },
       time: '33:30',
       venue: 'Bugesera Stadium',
@@ -61,12 +61,12 @@ const LiveMatches = () => {
       homeTeam: {
         name: 'AS KIGALI',
         score: 2,
-        logo: '/teams/askigali.png'
+        logo: '/teams/as-kigali.svg'
       },
       awayTeam: {
         name: 'Amagaju',
         score: 4,
-        logo: '/teams/amagaju.png'
+        logo: '/teams/amagaju.svg'
       },
       time: '33:30',
       venue: 'PELE Stadim',

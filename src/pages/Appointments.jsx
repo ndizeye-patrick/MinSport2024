@@ -394,7 +394,7 @@ function Appointments() {
                   <AddAppointmentForm onSubmit={handleAddAppointment} />
                 </div>
                 <div className="flex justify-end mt-4">
-                  <Button variant="outline" onClick={() => setAddModalOpen(false)}>
+                  <Button variant="default" className="mt-[-48px]" onClick={() => setAddModalOpen(false)}>
                     Close
                   </Button>
                 </div>

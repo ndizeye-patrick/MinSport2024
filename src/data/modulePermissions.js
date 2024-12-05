@@ -1,6 +1,6 @@
 export const modules = [
   {
-    id: 'national_teams',
+    id: 'national-teams',
     name: 'National Teams',
     permissions: ['Add', 'Edit', 'Delete']
   },

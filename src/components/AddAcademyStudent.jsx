@@ -11,7 +11,7 @@ import data from '../data/data.json';
 function AddAcademyStudent({ isOpen, onClose, onAdd, studentData = null, isEditing = false }) {
   const { isDarkMode } = useTheme();
   const [formData, setFormData] = useState({
-    photo_passport: null,
+    photo_passport: "",
     firstName: '',
     lastName: '',
     gender: '',
@@ -48,7 +48,7 @@ function AddAcademyStudent({ isOpen, onClose, onAdd, studentData = null, isEditi
   useEffect(() => {
     if (studentData) {
       setFormData(studentData);
-      if (studentData.photo_passport) {
+      if (studentData.photo_passport instanceof File) {
         setPreviewUrl(URL.createObjectURL(studentData.photo_passport));
       }
     }

@@ -1,27 +1,41 @@
-import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
-import { useDarkMode } from '../contexts/DarkModeContext';
-import Sidebar from './Sidebar';
-import ProfileMenu from './ui/ProfileMenu';
-import SearchBar from './SearchBar';
+import React from "react";
+import { Outlet } from "react-router-dom";
+import { useDarkMode } from "../contexts/DarkModeContext";
+import Sidebar from "./Sidebar";
+import ProfileMenu from "./ui/ProfileMenu";
+import SearchBar from "./SearchBar";
 
 const DashboardLayout = () => {
   const { isDarkMode } = useDarkMode();
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} flex`}>
+    <div
+      className={`min-h-screen flex ${
+        isDarkMode ? "bg-gray-900 text-white" : "bg-gray-50 text-gray-900"
+      }`}
+    >
       {/* Sidebar */}
-      <Sidebar />
+      <aside
+        className={`fixed top-0 left-0 h-full w-64 ${
+          isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+        } border-r z-40 flex flex-col`}
+      >
+        <Sidebar />
+      </aside>
 
       {/* Main Content */}
-      <div className="flex-1">
+      <div className="flex-1 ml-64">
         {/* Header */}
-        <header className={`fixed top-0 right-0 left-0 h-16 ${
-          isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'
-        } border-b z-30 px-6`}>
-          <div className="flex items-center justify-end h-full gap-4">
-            {/* Search Bar - Moved next to profile */}
-            <div className="max-w-md">
+        <header
+          className={`fixed top-0 right-0 left-64 h-16 ${
+            isDarkMode
+              ? "bg-gray-900 border-gray-700"
+              : "bg-white border-gray-200"
+          } border-b z-30 px-6`}
+        >
+          <div className="flex items-center justify-between h-full">
+            {/* Search Bar */}
+            <div className="flex-1 max-w-md">
               <SearchBar />
             </div>
 
@@ -31,7 +45,11 @@ const DashboardLayout = () => {
         </header>
 
         {/* Page Content */}
-        <main className={`p-6 mt-16 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <main
+          className={`p-6 mt-16 ${
+            isDarkMode ? "bg-gray-900" : "bg-gray-50"
+          }`}
+        >
           <Outlet />
         </main>
       </div>
@@ -39,4 +57,4 @@ const DashboardLayout = () => {
   );
 };
 
-export default DashboardLayout; 
+export default DashboardLayout;

@@ -43,7 +43,6 @@ function InstitutionForm({ institution, onSubmit, onCancel }) {
   const [loading, setLoading] = useState(false);
   const showToast = useToast();
 
-  // Set default values for the form
   const initialValues = {
     name: '',
     domain: '',
@@ -59,7 +58,7 @@ function InstitutionForm({ institution, onSubmit, onCancel }) {
     legalRepresentativeGender: 'Male',
     legalRepresentativeEmail: '',
     legalRepresentativePhone: '',
-    ...institution // Spread institution to override defaults if provided
+    ...institution
   };
 
   const {
@@ -93,10 +92,9 @@ function InstitutionForm({ institution, onSubmit, onCancel }) {
 
   const handleLocationChange = (e) => {
     const { name, value } = e.target;
-    const locationKey = name.split('.')[1]; // Access the correct nested location key (province, district, etc.)
-    const updatedLocation = { ...values.location, [locationKey]: value }; // Update the specific location field
+    const locationKey = name.split('.')[1];
+    const updatedLocation = { ...values.location, [locationKey]: value };
 
-    // Reset dependent fields
     if (locationKey === 'province') {
       updatedLocation.district = '';
       updatedLocation.sector = '';
@@ -113,83 +111,89 @@ function InstitutionForm({ institution, onSubmit, onCancel }) {
       updatedLocation.village = '';
     }
 
-    // Update the form state for location
     handleChange({ target: { name: 'location', value: updatedLocation } });
   };
 
+  const inputClasses = (error, touched) => `
+    w-full px-4 py-2.5 rounded-lg border text-sm
+    ${error && touched ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 focus:ring-blue-500'}
+    focus:outline-none focus:ring-2 transition-colors
+  `;
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="overflow-y-auto max-h-[80vh]">
-        <div className="grid grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-[#1B2559] mb-2">
-              Institution Name
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={values.name}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className={`w-full px-4 py-3 rounded-lg border ${
-                errors.name && touched.name
-                  ? 'border-red-500 focus:ring-red-500'
-                  : 'border-[#E2E7F0] focus:ring-[#4318FF]'
-              } focus:outline-none focus:ring-2`}
-              placeholder="Enter institution name"
-            />
-            {errors.name && touched.name && (
-              <p className="mt-1 text-sm text-red-500">{errors.name}</p>
-            )}
+    <div className="flex flex-col h-full max-h-[85vh]">
+      <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-4">
+        <div className="space-y-6">
+          {/* Basic Information Section */}
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Institution Name */}
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-gray-700">
+                  Institution Name
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={values.name}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={inputClasses(errors.name, touched.name)}
+                  placeholder="Enter institution name"
+                />
+                {errors.name && touched.name && (
+                  <p className="text-sm text-red-500">{errors.name}</p>
+                )}
+              </div>
+
+              {/* Domain */}
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-gray-700">
+                  Domain
+                </label>
+                <input
+                  type="text"
+                  name="domain"
+                  value={values.domain}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={inputClasses(errors.domain, touched.domain)}
+                  placeholder="Enter domain"
+                />
+                {errors.domain && touched.domain && (
+                  <p className="text-sm text-red-500">{errors.domain}</p>
+                )}
+              </div>
+
+              {/* Category */}
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-gray-700">
+                  Category
+                </label>
+                <select
+                  name="category"
+                  value={values.category}
+                  onChange={handleChange}
+                  className={inputClasses()}
+                >
+                  {categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-[#1B2559] mb-2">
-              Domain
-            </label>
-            <input
-              type="text"
-              name="domain"
-              value={values.domain}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className={`w-full px-4 py-3 rounded-lg border ${
-                errors.domain && touched.domain
-                  ? 'border-red-500 focus:ring-red-500'
-                  : 'border-[#E2E7F0] focus:ring-[#4318FF]'
-              } focus:outline-none focus:ring-2`}
-              placeholder="Enter domain"
-            />
-            {errors.domain && touched.domain && (
-              <p className="mt-1 text-sm text-red-500">{errors.domain}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-[#1B2559] mb-2">
-              Category
-            </label>
-            <select
-              name="category"
-              value={values.category}
-              onChange={handleChange}
-              className="w-full px-4 py-3 rounded-lg border border-[#E2E7F0] focus:outline-none focus:ring-2 focus:ring-[#4318FF]"
-            >
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-[#1B2559] mb-2">
-              Location
-            </label>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-[#1B2559] mb-2">
+          {/* Location Section */}
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Location Details</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Province */}
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-gray-700">
                   Province
                 </label>
                 <select
@@ -197,11 +201,7 @@ function InstitutionForm({ institution, onSubmit, onCancel }) {
                   value={values.location?.province || ''}
                   onChange={handleLocationChange}
                   onBlur={handleBlur}
-                  className={`w-full px-4 py-3 rounded-lg border ${
-                    errors.location?.province && touched.location?.province
-                      ? 'border-red-500 focus:ring-red-500'
-                      : 'border-[#E2E7F0] focus:ring-[#4318FF]'
-                  } focus:outline-none focus:ring-2`}
+                  className={inputClasses(errors.location?.province, touched.location?.province)}
                 >
                   <option value="">Select Province</option>
                   {locations.provinces.map((province) => (
@@ -210,12 +210,11 @@ function InstitutionForm({ institution, onSubmit, onCancel }) {
                     </option>
                   ))}
                 </select>
-                {errors.location?.province && touched.location?.province && (
-                  <p className="mt-1 text-sm text-red-500">{errors.location.province}</p>
-                )}
               </div>
-              <div>
-                <label className="block text-sm font-medium text-[#1B2559] mb-2">
+
+              {/* District */}
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-gray-700">
                   District
                 </label>
                 <select
@@ -223,11 +222,7 @@ function InstitutionForm({ institution, onSubmit, onCancel }) {
                   value={values.location?.district || ''}
                   onChange={handleLocationChange}
                   onBlur={handleBlur}
-                  className={`w-full px-4 py-3 rounded-lg border ${
-                    errors.location?.district && touched.location?.district
-                      ? 'border-red-500 focus:ring-red-500'
-                      : 'border-[#E2E7F0] focus:ring-[#4318FF]'
-                  } focus:outline-none focus:ring-2`}
+                  className={inputClasses(errors.location?.district, touched.location?.district)}
                   disabled={!values.location.province}
                 >
                   <option value="">Select District</option>
@@ -237,12 +232,11 @@ function InstitutionForm({ institution, onSubmit, onCancel }) {
                     </option>
                   ))}
                 </select>
-                {errors.location?.district && touched.location?.district && (
-                  <p className="mt-1 text-sm text-red-500">{errors.location.district}</p>
-                )}
               </div>
-              <div>
-                <label className="block text-sm font-medium text-[#1B2559] mb-2">
+
+              {/* Sector */}
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-gray-700">
                   Sector
                 </label>
                 <select
@@ -250,11 +244,7 @@ function InstitutionForm({ institution, onSubmit, onCancel }) {
                   value={values.location?.sector || ''}
                   onChange={handleLocationChange}
                   onBlur={handleBlur}
-                  className={`w-full px-4 py-3 rounded-lg border ${
-                    errors.location?.sector && touched.location?.sector
-                      ? 'border-red-500 focus:ring-red-500'
-                      : 'border-[#E2E7F0] focus:ring-[#4318FF]'
-                  } focus:outline-none focus:ring-2`}
+                  className={inputClasses(errors.location?.sector, touched.location?.sector)}
                   disabled={!values.location.district}
                 >
                   <option value="">Select Sector</option>
@@ -264,12 +254,11 @@ function InstitutionForm({ institution, onSubmit, onCancel }) {
                     </option>
                   ))}
                 </select>
-                {errors.location?.sector && touched.location?.sector && (
-                  <p className="mt-1 text-sm text-red-500">{errors.location.sector}</p>
-                )}
               </div>
-              <div>
-                <label className="block text-sm font-medium text-[#1B2559] mb-2">
+
+              {/* Cell */}
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-gray-700">
                   Cell
                 </label>
                 <select
@@ -277,11 +266,7 @@ function InstitutionForm({ institution, onSubmit, onCancel }) {
                   value={values.location?.cell || ''}
                   onChange={handleLocationChange}
                   onBlur={handleBlur}
-                  className={`w-full px-4 py-3 rounded-lg border ${
-                    errors.location?.cell && touched.location?.cell
-                      ? 'border-red-500 focus:ring-red-500'
-                      : 'border-[#E2E7F0] focus:ring-[#4318FF]'
-                  } focus:outline-none focus:ring-2`}
+                  className={inputClasses(errors.location?.cell, touched.location?.cell)}
                   disabled={!values.location.sector}
                 >
                   <option value="">Select Cell</option>
@@ -291,12 +276,11 @@ function InstitutionForm({ institution, onSubmit, onCancel }) {
                     </option>
                   ))}
                 </select>
-                {errors.location?.cell && touched.location?.cell && (
-                  <p className="mt-1 text-sm text-red-500">{errors.location.cell}</p>
-                )}
               </div>
-              <div>
-                <label className="block text-sm font-medium text-[#1B2559] mb-2">
+
+              {/* Village */}
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-gray-700">
                   Village
                 </label>
                 <select
@@ -304,11 +288,7 @@ function InstitutionForm({ institution, onSubmit, onCancel }) {
                   value={values.location?.village || ''}
                   onChange={handleLocationChange}
                   onBlur={handleBlur}
-                  className={`w-full px-4 py-3 rounded-lg border ${
-                    errors.location?.village && touched.location?.village
-                      ? 'border-red-500 focus:ring-red-500'
-                      : 'border-[#E2E7F0] focus:ring-[#4318FF]'
-                  } focus:outline-none focus:ring-2`}
+                  className={inputClasses(errors.location?.village, touched.location?.village)}
                   disabled={!values.location.cell}
                 >
                   <option value="">Select Village</option>
@@ -318,119 +298,108 @@ function InstitutionForm({ institution, onSubmit, onCancel }) {
                     </option>
                   ))}
                 </select>
-                {errors.location?.village && touched.location?.village && (
-                  <p className="mt-1 text-sm text-red-500">{errors.location.village}</p>
-                )}
               </div>
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-[#1B2559] mb-2">
-              Legal Representative Name
-            </label>
-            <input
-              type="text"
-              name="legalRepresentativeName"
-              value={values.legalRepresentativeName}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className={`w-full px-4 py-3 rounded-lg border ${
-                errors.legalRepresentativeName && touched.legalRepresentativeName
-                  ? 'border-red-500 focus:ring-red-500'
-                  : 'border-[#E2E7F0] focus:ring-[#4318FF]'
-              } focus:outline-none focus:ring-2`}
-              placeholder="Enter legal representative name"
-            />
-            {errors.legalRepresentativeName && touched.legalRepresentativeName && (
-              <p className="mt-1 text-sm text-red-500">{errors.legalRepresentativeName}</p>
-            )}
-          </div>
+          {/* Legal Representative Section */}
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Legal Representative Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-gray-700">
+                  Legal Representative Name
+                </label>
+                <input
+                  type="text"
+                  name="legalRepresentativeName"
+                  value={values.legalRepresentativeName}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={inputClasses(errors.legalRepresentativeName, touched.legalRepresentativeName)}
+                  placeholder="Enter legal representative name"
+                />
+                {errors.legalRepresentativeName && touched.legalRepresentativeName && (
+                  <p className="text-sm text-red-500">{errors.legalRepresentativeName}</p>
+                )}
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-[#1B2559] mb-2">
-              Legal Representative Gender
-            </label>
-            <select
-              name="legalRepresentativeGender"
-              value={values.legalRepresentativeGender}
-              onChange={handleChange}
-              className="w-full px-4 py-3 rounded-lg border border-[#E2E7F0] focus:outline-none focus:ring-2 focus:ring-[#4318FF]"
-            >
-              {genders.map((gender) => (
-                <option key={gender} value={gender}>
-                  {gender}
-                </option>
-              ))}
-            </select>
-          </div>
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-gray-700">
+                  Legal Representative Gender
+                </label>
+                <select
+                  name="legalRepresentativeGender"
+                  value={values.legalRepresentativeGender}
+                  onChange={handleChange}
+                  className={inputClasses()}
+                >
+                  {genders.map((gender) => (
+                    <option key={gender} value={gender}>
+                      {gender}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-[#1B2559] mb-2">
-              Legal Representative Email
-            </label>
-            <input
-              type="email"
-              name="legalRepresentativeEmail"
-              value={values.legalRepresentativeEmail}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className={`w-full px-4 py-3 rounded-lg border ${
-                errors.legalRepresentativeEmail && touched.legalRepresentativeEmail
-                  ? 'border-red-500 focus:ring-red-500'
-                  : 'border-[#E2E7F0] focus:ring-[#4318FF]'
-              } focus:outline-none focus:ring-2`}
-              placeholder="Enter legal representative email"
-            />
-            {errors.legalRepresentativeEmail && touched.legalRepresentativeEmail && (
-              <p className="mt-1 text-sm text-red-500">{errors.legalRepresentativeEmail}</p>
-            )}
-          </div>
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-gray-700">
+                  Legal Representative Email
+                </label>
+                <input
+                  type="email"
+                  name="legalRepresentativeEmail"
+                  value={values.legalRepresentativeEmail}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={inputClasses(errors.legalRepresentativeEmail, touched.legalRepresentativeEmail)}
+                  placeholder="Enter legal representative email"
+                />
+                {errors.legalRepresentativeEmail && touched.legalRepresentativeEmail && (
+                  <p className="text-sm text-red-500">{errors.legalRepresentativeEmail}</p>
+                )}
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-[#1B2559] mb-2">
-              Legal Representative Phone
-            </label>
-            <input
-              type="text"
-              name="legalRepresentativePhone"
-              value={values.legalRepresentativePhone}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className={`w-full px-4 py-3 rounded-lg border ${
-                errors.legalRepresentativePhone && touched.legalRepresentativePhone
-                  ? 'border-red-500 focus:ring-red-500'
-                  : 'border-[#E2E7F0] focus:ring-[#4318FF]'
-              } focus:outline-none focus:ring-2`}
-              placeholder="Enter legal representative phone"
-            />
-            {errors.legalRepresentativePhone && touched.legalRepresentativePhone && (
-              <p className="mt-1 text-sm text-red-500">{errors.legalRepresentativePhone}</p>
-            )}
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-gray-700">
+                  Legal Representative Phone
+                </label>
+                <input
+                  type="text"
+                  name="legalRepresentativePhone"
+                  value={values.legalRepresentativePhone}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={inputClasses(errors.legalRepresentativePhone, touched.legalRepresentativePhone)}
+                  placeholder="Enter legal representative phone"
+                />
+                {errors.legalRepresentativePhone && touched.legalRepresentativePhone && (
+                  <p className="text-sm text-red-500">{errors.legalRepresentativePhone}</p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </form>
 
-      <div className="flex justify-between items-center">
-        <button
-          type="submit"
-          disabled={loading}
-          className={`px-6 py-3 text-sm font-semibold text-white rounded-lg focus:outline-none focus:ring-2 ${
-            loading ? 'bg-gray-500' : 'bg-[#4318FF] hover:bg-[#3600FF]'
-          }`}
-        >
-          {loading ? 'Saving...' : 'Save Institution'}
-        </button>
-
+      <div className="flex justify-end gap-4 px-6 py-4 bg-gray-50 border-t">
         <button
           type="button"
           onClick={onCancel}
-          className="px-6 py-3 text-sm font-semibold text-[#1B2559] rounded-lg border border-[#E2E7F0] hover:border-[#4318FF] focus:outline-none focus:ring-2"
+          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
           Cancel
         </button>
+        <button
+          type="submit"
+          disabled={loading}
+          className={`px-4 py-2 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
+            ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+        >
+          {loading ? 'Saving...' : 'Save Institution'}
+        </button>
       </div>
-    </form>
+    </div>
   );
 }
 

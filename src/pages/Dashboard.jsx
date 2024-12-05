@@ -99,7 +99,8 @@ const Dashboard = () => {
   // Stats data for first row
   const statsRow1 = [
     { 
-      number: statsData.federations, 
+      number: statsData.federations,
+
       label: 'Federations', 
       icon: FileText, 
       color: 'bg-blue-100 text-blue-600',
@@ -139,11 +140,8 @@ const Dashboard = () => {
       icon: Flag, 
       color: 'bg-green-100 text-green-600',
       path: '/national-teams'
-    }
-  ];
-
-  // Stats data for second row
-  const statsRow2 = [
+    },
+ 
     { 
       number: statsData.isongaProgram, 
       label: 'Isonga Program', 
@@ -253,18 +251,53 @@ const Dashboard = () => {
         fill: true,
         borderColor: 'rgba(75, 192, 192, 1)',
         tension: 0.1,
+      
       },
     ],
   };
+
+
+  // const allowedPaths = localStorage.getItem("accessibleLinks");
+
+  // const filteredStatsRow1 = statsRow1.filter(stat => 
+  //   allowedPaths.some(allowed => allowed.path === stat.path)
+  // )
+  // console.log(filteredStatsRow1)
+
+// const filteredStatsRow2 = statsRow2
+const accessibleLinks = JSON.parse(localStorage.getItem("accessibleLinks"));
+
+const isStatsAllowed = (path) => {
+  return accessibleLinks.some((link) => link.path === path);
+};
+
+
+
+  const filteredStatsRow1 = statsRow1.filter((stat) => isStatsAllowed(stat.path));
+
+  console.log("Original statsRow1:", statsRow1);
+  console.log("Filtered statsRow1:", filteredStatsRow1);
+  
+  // Debugging specific stat for allowed path
+  statsRow1.forEach((stat) => {
+    console.log(`Is stat "${stat.label}" allowed:`, isStatsAllowed(stat.path));
+  });
+
+
+
+// Example to filter statsRow1 based on allowed paths
+
+
 
   return (
     <div className="p-6 space-y-6 bg-gray-50">
       {/* Stats Grid */}
       <div className="space-y-3">
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-          {statsRow1.map((stat, index) => (
+          {filteredStatsRow1.map((stat, index) => (
             <div 
               key={index} 
+              
               className="bg-white hover:bg-gray-50 rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 shadow-sm hover:shadow-md"
               onClick={() => navigate(stat.path)}
             >
@@ -277,7 +310,7 @@ const Dashboard = () => {
           ))}
         </div>
       </div>
-
+{/* 
       <div className="space-y-3">
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
           {statsRow2.map((stat, index) => (
@@ -294,7 +327,7 @@ const Dashboard = () => {
             </div>
           ))}
         </div>
-      </div>
+      </div> */}
 
 
       {/* Upcoming Appointments and Appointment Requests Section */}

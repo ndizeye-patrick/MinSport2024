@@ -1,140 +1,182 @@
-  import React, { useState } from 'react';
-  import { Link, useLocation } from 'react-router-dom';
-  import { 
-    LayoutGrid,
-    Flag,
-    Award,
-    Users,
-    GraduationCap,
-    School,
-    Building2,
-    Plane,
-    FileText,
-    Briefcase,
-    Calendar,
-    CircleUser,
-    UsersRound,
-    BarChart3,
-    Trophy,
-    Settings,
-    Moon,
-    Sun,
-    Search,
-    Bell,
-    Menu,
-    X,
-    UserPlus,
-    Timer
-  } from 'lucide-react';
-  import { useDarkMode } from '../contexts/DarkModeContext';
+import React, { useState, useEffect } from "react";
+import { NavLink, useLocation } from "react-router-dom";
+import { useDarkMode } from "../contexts/DarkModeContext";
+import axiosInstance from "../utils/axiosInstance";
 
-  const Sidebar = () => {
-    const [isSidebarOpen, setSidebarOpen] = useState(true);
-    const { isDarkMode, toggleDarkMode } = useDarkMode();
-    const location = useLocation();
+import { 
+  LayoutGrid,
+  Flag,
+  Award,
+  Users,
+  GraduationCap,
+  School,
+  Building2,
+  Plane,
+  FileText,
+  Briefcase,
+  Calendar,
+  CircleUser,
+  UsersRound,
+  BarChart3,
+  Trophy,
+  Settings,
+  Moon,
+  Sun,
+  Search,
+  Bell,
+  Menu,
+  X,
+  UserPlus,
+  Timer
+} from 'lucide-react';
+const sidebarLinks = [
+  { title:"Dashboard", icon: LayoutGrid, label: 'Dashboard', path: '/dashboard' },
+  // { title:"Setting", icon: LayoutGrid, label: 'setting', path: '/settings' },  
+  { title: "National Teams", path: "/national-teams", icon: Flag },
+  { title:"Federations  ", icon: Award, label: 'Federations', path: '/federations' },
+  { title:"Sports professionals", icon: Users, label: 'Sports professionals', path: '/sports-professionals' },
+  { title:"Trainings", icon: GraduationCap, label: 'Trainings', path: '/trainings' },
+  { title:"Isonga Programs", icon: School, label: 'Isonga Programs', path: '/isonga-programs' },
+  { title:"Academies", icon: School, label: 'Academies', path: '/academies' },
+  { title:"Infrastructure", icon: Building2, label: 'Infrastructure', path: '/infrastructure' },
+  { title:"Sports tourism", icon: Plane, label: 'Sports tourism', path: '/sports-tourism' },
+  { title:"Documents", icon: FileText, label: 'Documents', path: '/documents' },
+  { title:"Contracts", icon: Briefcase, label: 'Contracts', path: '/contracts' },
+  { title:"Appointments", icon: Calendar, label: 'Appointments', path: '/appointments' },
+  { title:"Employee", icon: CircleUser, label: 'Employee', path: '/employee' },
+  { title:"Users", icon: UsersRound, label: 'Users', path: '/users' },
+  { title:"Partners", icon: Users, label: 'Partners', path: '/partners' },
+  { title:"Reports", icon: BarChart3, label: 'Reports', path: '/reports' },
+  { title:"Sports for all", icon: Trophy, label: 'Sports for all', path: '/sports-for-all' },
+  { title:"Transfer Report", icon: UserPlus, label: 'Transfer Report', path: '/player-transfer-report' },
+  { title:"Match Operator", icon: Timer, label: 'Match Operator', path: '/match-operator' }
+];
 
-    const menuItems = [
-      { icon: LayoutGrid, label: 'Dashboard', path: '/dashboard' },
-      { icon: Flag, label: 'National Teams', path: '/national-teams' },
-      { icon: Award, label: 'Federations', path: '/federations' },
-      { icon: Users, label: 'Sports professionals', path: '/sports-professionals' },
-      { icon: GraduationCap, label: 'Trainings', path: '/trainings' },
-      { icon: School, label: 'Isonga Programs', path: '/isonga-programs' },
-      { icon: School, label: 'Academies', path: '/academies' },
-      { icon: Building2, label: 'Infrastructure', path: '/infrastructure' },
-      { icon: Plane, label: 'Sports tourism', path: '/sports-tourism' },
-      { icon: FileText, label: 'Documents', path: '/documents' },
-      { icon: Briefcase, label: 'Contracts', path: '/contracts' },
-      { icon: Calendar, label: 'Appointments', path: '/appointments' },
-      { icon: CircleUser, label: 'Employee', path: '/employee' },
-      { icon: UsersRound, label: 'Users', path: '/users' },
-      { icon: Users, label: 'Partners', path: '/partners' },
-      { icon: BarChart3, label: 'Reports', path: '/reports' },
-      { icon: Trophy, label: 'Sports for all', path: '/sports-for-all' },
-      { icon: UserPlus, label: 'Transfer Report', path: '/player-transfer-report' },
-      { icon: Timer, label: 'Match Operator', path: '/match-operator' }
-    ];
+const Sidebar = () => {
+  const { isDarkMode, toggleDarkMode } = useDarkMode();
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const location = useLocation();
+  const [accessibleModules, setAccessibleModules] = useState([]);
+  const [accessibleLinks, setAccessibleLinks] = useState([]);
 
-    
+  // Fetch accessible modules from the API
+  useEffect(() => {
+    const fetchGroupDetails = async () => {
+      try {
+        const userRole = await localStorage.getItem("userRole");
+        const response = await axiosInstance.get(`/groups/${userRole}`);
+        const modules = response.data.accessibleModules;
+        console.log("API Response - Accessible Modules:", modules);
 
+        if (modules === "all") {
+          setAccessibleModules(sidebarLinks.map((link) => link.path)); // All modules accessible
+          
+        } else if (modules) {
+          const formattedModules = modules.split(", ").map((module) =>
+            module.trim().toLowerCase().replace(/_/g, "-")
+          ); // Normalize to match sidebar paths
+          setAccessibleModules(formattedModules);
+        } else {
+          setAccessibleModules([]); // No modules accessible
+        }
+      } catch (error) {
+        console.error("Error fetching group details:", error);
+        setAccessibleModules([]); // Handle error gracefully
+      }
+    };
 
+    fetchGroupDetails();
+  }, []);
 
-    return (
-      <aside 
-        className={`fixed top-0 left-0 z-40 h-screen w-64 transition-transform ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } md:relative md:translate-x-0 ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}
-      >
-        <div className={`flex flex-col h-full ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} border-r`}>
-          {/* Logo */}
-          <div className={`flex items-center justify-center h-16 px-4 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} border-b`}>
-            <img src="/logo/logo.svg" alt="Logo" className="h-10 w-auto" />
-          </div>
-
-          {/* Navigation */}
-          <div className="flex-1 overflow-y-auto">
-            <nav className="px-3 py-4 space-y-1">
-              {menuItems.map((item) => {
-                const isActive = location.pathname === item.path;
-                return (
-                  <Link
-                    key={item.label}
-                    to={item.path}
-                    className={`flex items-center space-x-3 px-4 py-2.5 rounded-lg transition-colors ${
-                      isActive 
-                        ? 'bg-blue-600 text-white' 
-                        : isDarkMode
-                          ? 'text-gray-300 hover:bg-gray-800'
-                          : 'text-gray-600 hover:bg-gray-100'
-                    }`}
-                  >
-                    <item.icon className="h-5 w-5" />
-                    <span className="text-sm">{item.label}</span>
-                  </Link>
-                );
-              })}
-            </nav>
-          </div>
-
-          {/* Settings and Dark Mode */}
-          <div className={`p-4 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} border-t space-y-2`}>
-            <Link
-              to="/settings"
-              className={`flex items-center space-x-3 px-4 py-2.5 rounded-lg ${
-                isDarkMode 
-                  ? 'text-gray-300 hover:bg-gray-800' 
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              <Settings className="h-5 w-5" />
-              <span className="text-sm">Settings</span>
-            </Link>
-            <button
-              onClick={toggleDarkMode}
-              className={`flex items-center space-x-3 px-4 py-2.5 w-full rounded-lg ${
-                isDarkMode 
-                  ? 'text-gray-300 hover:bg-gray-800' 
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              {isDarkMode ? (
-                <Sun className="h-5 w-5" />
-              ) : (
-                <Moon className="h-5 w-5" />
-              )}
-              <span className="text-sm">Dark Mode</span>
-              <div className={`ml-auto w-10 h-5 rounded-full transition-colors ${
-                isDarkMode ? 'bg-blue-600' : 'bg-gray-200'
-              }`}>
-                <div className={`w-4 h-4 rounded-full bg-white transform transition-transform ${
-                  isDarkMode ? 'translate-x-5' : 'translate-x-1'
-                }`} />
-              </div>
-            </button>
-          </div>
-        </div>
-      </aside>
+  // Update accessible links whenever accessibleModules changes
+  useEffect(() => {
+    const links = sidebarLinks.filter((link) =>
+      accessibleModules.some((module) =>
+        link.path.toLowerCase().includes(module)
+      )
     );
-  };
 
-  export default Sidebar; 
+    const dashboardLink = sidebarLinks.find((link) => link.path === "/dashboard");
+    if (dashboardLink && !links.some((link) => link.path === "/dashboard")) {
+      links.unshift(dashboardLink); // Add Dashboard to the start
+    }
+    console.log("Accessible Modules:", accessibleModules);
+    console.log("Accessible Links:", links);
+    setAccessibleLinks(links);
+  }, [accessibleModules]);
+
+  localStorage.setItem("accessibleLinks", JSON.stringify(accessibleLinks));
+
+
+
+
+
+  return (
+    <aside
+      className={`fixed top-0 left-0 z-40 h-screen transition-transform ${
+        isCollapsed ? "-translate-x-full" : "translate-x-0"
+      } md:relative md:translate-x-0 ${isDarkMode ? "bg-gray-900" : "bg-white"}`}
+      style={{ width: isCollapsed ? "64px" : "256px" }}
+    >
+      <div
+        className={`flex flex-col h-full ${
+          isDarkMode ? "border-gray-700" : "border-gray-200"
+        } border-r`}
+      >
+        {/* Logo */}
+        <div
+          className={`flex items-center justify-center h-16 px-4 ${
+            isDarkMode ? "border-gray-700" : "border-gray-200"
+          } border-b`}
+        >
+          <img src="/logo/logo.svg" alt="Logo" className="h-10 w-auto" />
+        </div>
+
+        {/* Navigation */}
+        <div className="flex-1 overflow-y-auto">
+          <nav className="px-3 py-4 space-y-1">
+            {accessibleLinks.map((item) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <NavLink
+                  key={item.title}
+                  to={item.path}
+                  className={`flex items-center space-x-3 px-4 py-2.5 rounded-lg transition-colors ${
+                    isActive
+                      ? "bg-blue-600 text-white"
+                      : isDarkMode
+                      ? "text-gray-300 hover:bg-gray-800"
+                      : "text-gray-600 hover:bg-gray-100"
+                  }`}
+                >
+                  <item.icon className="h-5 w-5" />
+                  <span className="text-sm">{item.title}</span>
+                </NavLink>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Settings */}
+        <div
+          className={`p-4 ${
+            isDarkMode ? "border-gray-700" : "border-gray-200"
+          } border-t`}
+        >
+          <button
+            onClick={toggleDarkMode}
+            className={`flex items-center space-x-3 px-4 py-2.5 w-full rounded-lg ${
+              isDarkMode
+                ? "text-gray-300 hover:bg-gray-800"
+                : "text-gray-600 hover:bg-gray-100"
+            }`}
+          >
+            {/* <span className="text-sm">Dark Mode</span> */}
+          </button>
+        </div>
+      </div>
+    </aside>
+  );
+};
+
+export default Sidebar;

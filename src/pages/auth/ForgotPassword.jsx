@@ -21,11 +21,8 @@ const ForgotPassword = () => {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex justify-center mb-8">
-          <img 
-            src="https://dashboard.codeparrot.ai/api/assets/Z0iPQ7C__zKlYkwU" 
-            alt="Logo" 
-            className="h-20 w-auto" 
-          />
+       
+        <img src="/logo/logo.svg" alt="Logo" className="h-10 w-auto" />
         </div>
 
         {/* Form Container */}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '../components/ui/button';
+import { Button } from '../components/ui/Button';
 import { toast } from 'sonner';
 import { User, Lock, Camera, Mail, Phone, Building, MapPin } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
@@ -11,13 +11,9 @@ const Settings = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [profileData, setProfileData] = useState({
-    name: user?.name || '',
-    lastName: user?.lastName || '',
-    email: user?.email || '',
-    phone: user?.phone || '',
-    department: user?.department || '',
-    location: user?.location || '',
-    photo: user?.photo || '/profile/profile-pic.png'
+    name: '',
+    email: '',
+    groupId: '',
   });
 
   const [passwordData, setPasswordData] = useState({
@@ -29,13 +25,9 @@ const Settings = () => {
   useEffect(() => {
     if (user) {
       setProfileData({
-        name: user.name,
-        lastName: user.lastName,
-        email: user.email,
-        phone: user.phone,
-        department: user.department,
-        location: user.location,
-        photo: user.photo || '/profile/profile-pic.png',
+        name: user?.name || '',
+        email: user?.email || '',
+        groupId: user?.groupId || '',
       });
     }
   }, [user]);
@@ -43,25 +35,42 @@ const Settings = () => {
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-
+  
     try {
-      const response = await axios.put('/updateProfile', profileData, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+      // Ensure the user object and its id are present
+      if (!user || !user.id) {
+        toast.error('User ID not available');
+        setIsSubmitting(false);
+        return;
+      }
+  
+      // Use axios for the PUT request
+      const response = await axios.put(
+        `/users/${user.id}`, // User ID included in the URL
+        profileData, // Data to be updated
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`, // Authorization header
+            
+          },
         }
-      });
+      );
+        console.log('about if condition',user.id);
       if (response.status === 200) {
         toast.success('Profile updated successfully');
-        updateUser(response.data);  // Update user in context
+        updateUser(response.data); // Update the user context with new data
       } else {
         toast.error('Failed to update profile');
       }
     } catch (error) {
-      toast.error('Failed to update profile');
+      console.error('Error updating profile:', error);
+      // toast.error('Failed to update profile');
     } finally {
       setIsSubmitting(false);
     }
   };
+  
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
@@ -182,7 +191,7 @@ const Settings = () => {
               </div>
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">First Name</label>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">Full Name</label>
                   <input
                     type="text"
                     id="name"
@@ -192,7 +201,7 @@ const Settings = () => {
                     onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
                   />
                 </div>
-                <div>
+                {/* <div>
                   <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">Last Name</label>
                   <input
                     type="text"
@@ -202,10 +211,10 @@ const Settings = () => {
                     value={profileData.lastName}
                     onChange={(e) => setProfileData({ ...profileData, lastName: e.target.value })}
                   />
-                </div>
+                </div> */}
               </div>
               <div className="grid grid-cols-2 gap-6">
-                <div>
+                {/* <div>
                   <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
                   <input
                     type="text"
@@ -215,8 +224,8 @@ const Settings = () => {
                     value={profileData.phone}
                     onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
                   />
-                </div>
-                <div>
+                </div> */}
+                {/* <div>
                   <label htmlFor="department" className="block text-sm font-medium text-gray-700">Department</label>
                   <input
                     type="text"
@@ -226,10 +235,10 @@ const Settings = () => {
                     value={profileData.department}
                     onChange={(e) => setProfileData({ ...profileData, department: e.target.value })}
                   />
-                </div>
+                </div> */}
               </div>
               <div className="grid grid-cols-2 gap-6">
-                <div>
+                {/* <div>
                   <label htmlFor="location" className="block text-sm font-medium text-gray-700">Location</label>
                   <input
                     type="text"
@@ -239,7 +248,7 @@ const Settings = () => {
                     value={profileData.location}
                     onChange={(e) => setProfileData({ ...profileData, location: e.target.value })}
                   />
-                </div>
+                </div> */}
               </div>
               <div className="flex justify-end">
                 <Button type="submit" disabled={isSubmitting} loading={isSubmitting}>

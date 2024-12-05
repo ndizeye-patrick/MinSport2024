@@ -468,13 +468,7 @@ function AddAcademyModal({ isOpen, onClose, onAdd, academyData = null }) {
 
                   {/* Placeholder Image */}
                   <div className="flex justify-center">
-                    <img
-                      src="https://dashboard.codeparrot.ai/api/assets/Z07tHnFEV176CUq1&text=Academy+Image"
-                      alt="Placeholder"
-                      width="200"
-                      height="150"
-                      className="rounded-lg shadow-md"
-                    />
+                
                   </div>
 
                   {/* Action Buttons */}

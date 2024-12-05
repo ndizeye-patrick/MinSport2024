@@ -3,12 +3,12 @@ import { Plus, Edit, Trash2, AlertCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import PageLoading from '../components/ui/PageLoading';
 import Message from '../components/ui/Message';
-import { Button } from '../components/ui/Button';
+import { Button } from '../components/ui/button';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../components/ui/Table';
 import axiosInstance from '../utils/axiosInstance';
 import Modal from '../components/ui/Modal';
 import AddSportsProfessionalForm from '../components/forms/AddSportsProfessionalForm';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/Dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/dialog';
 
 const SportsProfessionals = () => {
   const [professionals, setProfessionals] = useState([]);
@@ -510,40 +510,56 @@ const SportsProfessionals = () => {
           }}
           title={editingDiscipline ? 'Edit Discipline' : 'Add Discipline'}
         >
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (editingDiscipline) {
-                handleEditDiscipline();
-              } else {
-                handleAddDiscipline();
-              }
-            }}
-          >
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="block font-semibold">Name</label>
-                <input
-                  type="text"
-                  className="input"
-                  value={disciplineForm.name}
-                  onChange={(e) => setDisciplineForm({ ...disciplineForm, name: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="block font-semibold">Type</label>
-                <input
-                  type="text"
-                  className="input"
-                  value={disciplineForm.type}
-                  onChange={(e) => setDisciplineForm({ ...disciplineForm, type: e.target.value })}
-                  required
-                />
-              </div>
-              <Button type="submit">Save</Button>
-            </div>
-          </form>
+         <form
+  onSubmit={(e) => {
+    e.preventDefault();
+    if (editingDiscipline) {
+      handleEditDiscipline();
+    } else {
+      handleAddDiscipline();
+    }
+  }}
+  className="max-w-lg mx-auto space-y-6 p-4 border rounded-lg shadow-lg"
+>
+  <div className="space-y-4">
+    {/* Discipline Name */}
+    <div className="space-y-2">
+      <label className="block text-sm font-semibold text-[#1B2559]">Name</label>
+      <input
+        type="text"
+        className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4318FF] text-sm"
+        value={disciplineForm.name}
+        onChange={(e) => setDisciplineForm({ ...disciplineForm, name: e.target.value })}
+        required
+        placeholder="Enter discipline name"
+      />
+    </div>
+
+    {/* Discipline Type */}
+    <div className="space-y-2">
+      <label className="block text-sm font-semibold text-[#1B2559]">Type</label>
+      <input
+        type="text"
+        className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4318FF] text-sm"
+        value={disciplineForm.type}
+        onChange={(e) => setDisciplineForm({ ...disciplineForm, type: e.target.value })}
+        required
+        placeholder="Enter discipline type"
+      />
+    </div>
+
+    {/* Save Button */}
+    <div className="flex justify-end space-x-4">
+      <Button
+        type="submit"
+        className="px-6 py-3 text-sm font-semibold text-white bg-[#4318FF] hover:bg-[#3600FF] rounded-lg focus:outline-none focus:ring-2"
+      >
+        Save
+      </Button>
+    </div>
+  </div>
+</form>
+
         </Modal>
       )}
 

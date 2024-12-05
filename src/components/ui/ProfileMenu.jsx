@@ -31,6 +31,11 @@ const ProfileMenu = () => {
     try {
       await logout(); // Perform logout
       toast.success('Logged out successfully');
+      localStorage.removeItem('isAuthenticated');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('accessibleLinks');
+      localStorage.removeItem('user');
+      
       navigate('/landing'); // Navigate after logout
     } catch (error) {
       console.error('Logout error:', error); // Log errors
