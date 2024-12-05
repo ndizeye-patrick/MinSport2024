@@ -3,7 +3,7 @@ import { Plus, Edit, Trash2, AlertCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import PageLoading from '../components/ui/PageLoading';
 import Message from '../components/ui/Message';
-import { Button } from '../components/ui/button';
+import { Button } from '../components/ui/Button';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../components/ui/Table';
 import axiosInstance from '../utils/axiosInstance';
 import Modal from '../components/ui/Modal';
