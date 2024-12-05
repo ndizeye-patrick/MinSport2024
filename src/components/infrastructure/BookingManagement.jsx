@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Table,
   TableHeader,
@@ -13,49 +13,31 @@ import { Check, X, Search, Filter } from 'lucide-react';
 import { toast } from 'sonner';
 import { Input } from '../ui/input';
 import { Select } from '../ui/select';
+import axiosInstance from '../../utils/axiosInstance';
+import BookRequestModal from '../../components/infrastructure/BookingRequestModal'; // Import the modal
 
 const BookingManagement = () => {
-  // Sample booking data
-  const [bookings] = useState([
-    {
-      id: 1,
-      facility: 'Amahoro Stadium',
-      organizer: 'Sports Club A',
-      date: '2024-03-15',
-      time: '14:00-17:00',
-      purpose: 'Football Tournament',
-      status: 'pending',
-      contact: '+250789123456'
-    },
-    {
-      id: 2,
-      facility: 'Kigali Arena',
-      organizer: 'Basketball Association',
-      date: '2024-03-16',
-      time: '09:00-12:00',
-      purpose: 'Basketball Championship',
-      status: 'approved',
-      contact: '+250789123457'
-    },
-    {
-      id: 3,
-      facility: 'Nyamirambo Stadium',
-      organizer: 'Youth Sports Club',
-      date: '2024-03-17',
-      time: '15:00-18:00',
-      purpose: 'Training Session',
-      status: 'rejected',
-      contact: '+250789123458'
-    },
-  ]);
-
-  // Filter states
+  const [bookings, setBookings] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [isModalOpen, setIsModalOpen] = useState(false); // State to manage modal visibility
   const itemsPerPage = 5;
 
-  // Filter bookings
+  useEffect(() => {
+    fetchBookings();
+  }, []);
+
+  const fetchBookings = async () => {
+    try {
+      const response = await axiosInstance.get('/booking-requests');
+      setBookings(response.data);
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+      toast.error('Failed to fetch bookings');
+    }
+  };
+
   const filteredBookings = useMemo(() => {
     return bookings.filter(booking => {
       const matchesSearch = 
@@ -70,7 +52,6 @@ const BookingManagement = () => {
     });
   }, [bookings, searchTerm, statusFilter]);
 
-  // Pagination
   const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
   const paginatedBookings = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -79,18 +60,26 @@ const BookingManagement = () => {
 
   const handleApprove = async (bookingId) => {
     try {
-      // API call to approve booking
+      await axiosInstance.put(`/booking-requests/${bookingId}/approve`);
+      setBookings(prev => prev.map(booking => 
+        booking.id === bookingId ? { ...booking, status: 'approved' } : booking
+      ));
       toast.success('Booking approved successfully');
     } catch (error) {
+      console.error('Failed to approve booking:', error);
       toast.error('Failed to approve booking');
     }
   };
 
   const handleReject = async (bookingId) => {
     try {
-      // API call to reject booking
+      await axiosInstance.put(`/booking-requests/${bookingId}/reject`);
+      setBookings(prev => prev.map(booking => 
+        booking.id === bookingId ? { ...booking, status: 'rejected' } : booking
+      ));
       toast.success('Booking rejected');
     } catch (error) {
+      console.error('Failed to reject booking:', error);
       toast.error('Failed to reject booking');
     }
   };
@@ -118,6 +107,12 @@ const BookingManagement = () => {
           <option value="approved">Approved</option>
           <option value="rejected">Rejected</option>
         </Select>
+        <Button
+          onClick={() => setIsModalOpen(true)} // Open the modal
+          className="ml-auto"
+        >
+          Add Booking
+        </Button>
       </div>
 
       {/* Bookings Table */}
@@ -192,8 +187,17 @@ const BookingManagement = () => {
           className="border-t border-gray-200 dark:border-gray-700"
         />
       </div>
+
+      {/* Book Request Modal */}
+      {isModalOpen && (
+        <BookRequestModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onBookingAdded={fetchBookings} // Refresh bookings after adding
+        />
+      )}
     </div>
   );
 };
 
-export default BookingManagement; 
+export default BookingManagement;

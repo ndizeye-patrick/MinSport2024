@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+/* src/pages/SportsTourism.jsx */
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
 import { Plus } from 'lucide-react';
 import { Button } from '../components/ui/button';
@@ -7,12 +8,28 @@ import TourismCalendar from '../components/tourism/TourismCalendar';
 import AddEventModal from '../components/tourism/AddEventModal';
 import { useDarkMode } from '../contexts/DarkModeContext';
 import CategoryManagementModal from '../components/tourism/CategoryManagementModal';
+import axiosInstance from '../utils/axiosInstance';
 
 const SportsTourism = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [activeTab, setActiveTab] = useState('list');
   const { isDarkMode } = useDarkMode();
+  const [events, setEvents] = useState([]);
+
+  useEffect(() => {
+    // Fetch events data using axiosInstance
+    const fetchEvents = async () => {
+      try {
+        const response = await axiosInstance.get('/sports-tourism-events');
+        setEvents(response.data);
+      } catch (error) {
+        console.error('Error fetching events:', error);
+      }
+    };
+
+    fetchEvents();
+  }, []);
 
   return (
     <div className="p-6">
@@ -49,11 +66,11 @@ const SportsTourism = () => {
         </TabsList>
 
         <TabsContent value="list">
-          <TourismEventsList />
+          <TourismEventsList events={events} />
         </TabsContent>
 
         <TabsContent value="calendar">
-          <TourismCalendar />
+          <TourismCalendar events={events} />
         </TabsContent>
       </Tabs>
 
@@ -72,4 +89,4 @@ const SportsTourism = () => {
   );
 };
 
-export default SportsTourism; 
+export default SportsTourism;

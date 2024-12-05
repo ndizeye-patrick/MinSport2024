@@ -1,76 +1,109 @@
-import React, { useState } from 'react';
-import { Modal } from '../ui/Modal';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Plus, X, Edit2, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { useTourism } from '../../contexts/TourismContext';
+import React, { useState, useEffect } from 'react'
+import { Modal } from '../ui/Modal'
+import { Button } from '../ui/button'
+import { Input } from '../ui/input'
+import { Plus, X, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
+import axiosInstance from '../../utils/axiosInstance'
 
 const CategoryManagementModal = ({ isOpen, onClose }) => {
-  const { categories, updateCategories } = useTourism();
-  const [newCategory, setNewCategory] = useState('');
-  const [newSubCategory, setNewSubCategory] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [categories, setCategories] = useState({})
+  const [newCategory, setNewCategory] = useState('')
+  const [newSubCategory, setNewSubCategory] = useState('')
+  const [subCategoryDescription, setSubCategoryDescription] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState(null)
 
-  const handleAddCategory = () => {
-    if (!newCategory.trim()) {
-      toast.error('Category name cannot be empty');
-      return;
-    }
-
-    if (Object.keys(categories).includes(newCategory)) {
-      toast.error('Category already exists');
-      return;
-    }
-
-    const updatedCategories = {
-      ...categories,
-      [newCategory]: {
-        subCategories: [],
-        levels: []
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axiosInstance.get('/sports-tourism-categories')
+        const categoriesData = response.data.reduce((acc, category) => {
+          acc[category.id] = {
+            name: category.name,
+            subCategories: category.subCategories || [],
+          }
+          return acc
+        }, {})
+        setCategories(categoriesData)
+      } catch (error) {
+        toast.error('Failed to fetch categories')
       }
-    };
+    }
 
-    updateCategories(updatedCategories);
-    setNewCategory('');
-    toast.success('Category added successfully');
-  };
+    if (isOpen) {
+      fetchCategories()
+    }
+  }, [isOpen])
 
-  const handleAddSubCategory = () => {
+  const handleAddCategory = async () => {
+    if (!newCategory.trim()) {
+      toast.error('Category name cannot be empty')
+      return
+    }
+
+    try {
+      const response = await axiosInstance.post('/sports-tourism-categories', {
+        name: newCategory,
+      })
+
+      const newCategoryData = response.data
+      setCategories(prevCategories => ({
+        ...prevCategories,
+        [newCategoryData.id]: {
+          name: newCategoryData.name,
+          subCategories: [],
+        },
+      }))
+      setNewCategory('')
+      toast.success('Category added successfully')
+    } catch (error) {
+      console.error('Error adding category:', error.response || error.message)
+      toast.error('Failed to add category')
+    }
+  }
+
+  const handleAddSubCategory = async () => {
     if (!selectedCategory) {
-      toast.error('Please select a category first');
-      return;
+      toast.error('Please select a category first')
+      return
     }
 
     if (!newSubCategory.trim()) {
-      toast.error('Subcategory name cannot be empty');
-      return;
+      toast.error('Subcategory name cannot be empty')
+      return
     }
 
-    if (categories[selectedCategory].subCategories.includes(newSubCategory)) {
-      toast.error('Subcategory already exists');
-      return;
-    }
-
-    const updatedCategories = {
-      ...categories,
-      [selectedCategory]: {
-        ...categories[selectedCategory],
-        subCategories: [...categories[selectedCategory].subCategories, newSubCategory]
-      }
+    const payload = {
+      name: newSubCategory,
+      categoryId: selectedCategory,
+      description: subCategoryDescription
     };
+    
+    
 
-    updateCategories(updatedCategories);
-    setNewSubCategory('');
-    toast.success('Subcategory added successfully');
-  };
+    console.log('Payload being sent:', payload)
 
-  const handleDeleteCategory = (category) => {
+    try {
+      const response = await axiosInstance.post('/sports-tourism-subcategories', payload);
+      console.log('API Response:', response.data);
+      // Update state with new subcategory
+    } catch (error) {
+      if (error.response) {
+        console.error('Server Error:', error.response.data);
+        toast.error(error.response.data.message || 'Failed to add subcategory');
+      } else {
+        console.error('Error:', error.message);
+        toast.error('Failed to add subcategory');
+      }
+    }
+  }
+
+  const handleDeleteCategory = async (categoryId) => {
     toast.custom((t) => (
       <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg">
         <h3 className="font-medium mb-2 dark:text-white">Delete Category</h3>
         <p className="text-sm mb-4 text-gray-600 dark:text-gray-300">
-          Are you sure you want to delete "{category}"? This will also delete all its subcategories.
+          Are you sure you want to delete this category? This will also delete all its subcategories.
         </p>
         <div className="flex justify-end space-x-2">
           <Button
@@ -83,32 +116,45 @@ const CategoryManagementModal = ({ isOpen, onClose }) => {
           <Button
             variant="destructive"
             size="sm"
-            onClick={() => {
-              const newCategories = { ...categories };
-              delete newCategories[category];
-              updateCategories(newCategories);
-              toast.dismiss(t);
-              toast.success('Category deleted successfully');
+            onClick={async () => {
+              try {
+                await axiosInstance.delete(`/sports-tourism-categories/${categoryId}`)
+                setCategories(prevCategories => {
+                  const newCategories = { ...prevCategories }
+                  delete newCategories[categoryId]
+                  return newCategories
+                })
+                toast.dismiss(t)
+                toast.success('Category deleted successfully')
+              } catch (error) {
+                console.error('Error deleting category:', error.response || error.message)
+                toast.error('Failed to delete category')
+              }
             }}
           >
             Delete
           </Button>
         </div>
       </div>
-    ));
-  };
+    ))
+  }
 
-  const handleDeleteSubCategory = (category, subCategory) => {
-    const updatedCategories = {
-      ...categories,
-      [category]: {
-        ...categories[category],
-        subCategories: categories[category].subCategories.filter(sub => sub !== subCategory)
-      }
-    };
-    updateCategories(updatedCategories);
-    toast.success('Subcategory deleted successfully');
-  };
+  const handleDeleteSubCategory = async (categoryId, subCategoryId) => {
+    try {
+      await axiosInstance.delete(`/sports-tourism-subcategories/${subCategoryId}`)
+      setCategories(prevCategories => ({
+        ...prevCategories,
+        [categoryId]: {
+          ...prevCategories[categoryId],
+          subCategories: prevCategories[categoryId].subCategories.filter(sub => sub.id !== subCategoryId),
+        },
+      }))
+      toast.success('Subcategory deleted successfully')
+    } catch (error) {
+      console.error('Error deleting subcategory:', error.response || error.message)
+      toast.error('Failed to delete subcategory')
+    }
+  }
 
   return (
     <Modal
@@ -158,8 +204,8 @@ const CategoryManagementModal = ({ isOpen, onClose }) => {
                   onChange={(e) => setSelectedCategory(e.target.value)}
                 >
                   <option value="">Select Category</option>
-                  {Object.keys(categories).map(category => (
-                    <option key={category} value={category}>{category}</option>
+                  {Object.entries(categories).map(([id, category]) => (
+                    <option key={id} value={id}>{category.name}</option>
                   ))}
                 </select>
                 <div className="flex flex-1 gap-3">
@@ -167,6 +213,12 @@ const CategoryManagementModal = ({ isOpen, onClose }) => {
                     placeholder="Enter subcategory name"
                     value={newSubCategory}
                     onChange={(e) => setNewSubCategory(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Input
+                    placeholder="Enter description"
+                    value={subCategoryDescription}
+                    onChange={(e) => setSubCategoryDescription(e.target.value)}
                     className="flex-1"
                   />
                   <Button onClick={handleAddSubCategory}>
@@ -181,15 +233,15 @@ const CategoryManagementModal = ({ isOpen, onClose }) => {
             <section>
               <h3 className="text-base font-semibold mb-4">Current Categories</h3>
               <div className="space-y-4">
-                {Object.entries(categories).map(([category, data]) => (
-                  <div key={category} className="border dark:border-gray-700 rounded-lg overflow-hidden">
+                {Object.entries(categories).map(([categoryId, data]) => (
+                  <div key={categoryId} className="border dark:border-gray-700 rounded-lg overflow-hidden">
                     <div className="bg-gray-50 dark:bg-gray-800 p-4 flex items-center justify-between">
-                      <h4 className="font-medium text-lg">{category}</h4>
+                      <h4 className="font-medium text-lg">{data.name}</h4>
                       <Button
                         variant="ghost"
                         size="sm"
                         className="text-red-600"
-                        onClick={() => handleDeleteCategory(category)}
+                        onClick={() => handleDeleteCategory(categoryId)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -198,15 +250,15 @@ const CategoryManagementModal = ({ isOpen, onClose }) => {
                       <div className="space-y-2">
                         {data.subCategories.map(subcategory => (
                           <div 
-                            key={subcategory} 
+                            key={subcategory.id} 
                             className="flex items-center justify-between py-2 px-4 bg-gray-50 dark:bg-gray-800/50 rounded-md"
                           >
-                            <span className="text-sm">{subcategory}</span>
+                            <span className="text-sm">{subcategory.name}</span>
                             <Button
                               variant="ghost"
                               size="sm"
                               className="text-red-600"
-                              onClick={() => handleDeleteSubCategory(category, subcategory)}
+                              onClick={() => handleDeleteSubCategory(categoryId, subcategory.id)}
                             >
                               <X className="h-4 w-4" />
                             </Button>
@@ -236,7 +288,7 @@ const CategoryManagementModal = ({ isOpen, onClose }) => {
         </div>
       </div>
     </Modal>
-  );
-};
+  )
+}
 
-export default CategoryManagementModal; 
+export default CategoryManagementModal

@@ -1,186 +1,104 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { Select } from '../ui/select';
 import { Textarea } from '../ui/textarea';
 import { toast } from 'sonner';
-import { useTourism } from '../../contexts/TourismContext';
-import { Upload } from 'lucide-react';
-import { locations } from '../../data/locations';
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import axiosInstance from '../../utils/axiosInstance';
+import { locations } from '../../data/locations';
 
 const AddEventModal = ({ isOpen, onClose }) => {
-  const { categories, addEvent } = useTourism();
   const [formData, setFormData] = useState({
-    banner: null,
-    video: null,
     name: '',
     category: '',
     subCategory: '',
-    location: {
-      province: '',
-      district: '',
-      sector: '',
-      cell: '',
-      village: ''
-    },
-    startDate: '',
-    startTime: '',
-    endDate: '',
-    endTime: '',
-    participants: {
-      male: 0,
-      female: 0
-    },
-    fees: '',
-    amountGenerated: '',
+    province: '',
+    district: '',
+    sector: '',
+    cell: '',
+    village: '',
+    startDate: '2024-12-05',
+    endDate: '2024-12-05',
+    participants: 1,
+    participantsFee: 1,
+    amountGenerated: 1,
     description: '',
-    status: 'Upcoming' // Default status
+    isPublished: true,
   });
 
-  const [locationData, setLocationData] = useState({
-    provinces: locations.provinces,
-    districts: [],
-    sectors: [],
-    cells: [],
-    villages: []
-  });
+  const [categories, setCategories] = useState([]);
+  const [subCategories, setSubCategories] = useState([]);
 
-  const timeOptions = Array.from({ length: 48 }, (_, i) => {
-    const hour = Math.floor(i / 2);
-    const minute = i % 2 === 0 ? '00' : '30';
-    const ampm = hour < 12 ? 'AM' : 'PM';
-    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-    return `${displayHour}:${minute} ${ampm}`;
-  });
-
-  const handleFileChange = (field, e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (field === 'banner' && !file.type.startsWith('image/')) {
-        toast.error('Please upload an image file for the banner');
-        return;
+  useEffect(() => {
+    // Fetch categories and subcategories from API
+    const fetchCategories = async () => {
+      try {
+        const response = await axiosInstance.get('/sports-tourism-categories');
+        setCategories(response.data);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
       }
-      if (field === 'video' && !file.type.startsWith('video/')) {
-        toast.error('Please upload a video file');
-        return;
+    };
+
+    const fetchSubCategories = async () => {
+      try {
+        const response = await axiosInstance.get('/sports-tourism-subcategories');
+        setSubCategories(response.data);
+      } catch (error) {
+        console.error('Error fetching subcategories:', error);
       }
-      setFormData(prev => ({ ...prev, [field]: file }));
-    }
-  };
+    };
+
+    fetchCategories();
+    fetchSubCategories();
+  }, []);
 
   const handleLocationChange = (field, value) => {
-    setFormData(prev => {
-      const newLocation = {
-        ...prev.location,
-        [field]: value
-      };
-
-      // Reset dependent fields
-      switch (field) {
-        case 'province':
-          newLocation.district = '';
-          newLocation.sector = '';
-          newLocation.cell = '';
-          newLocation.village = '';
-          setLocationData(prev => ({
-            ...prev,
-            districts: locations.districts[value] || [],
-            sectors: [],
-            cells: [],
-            villages: []
-          }));
-          break;
-        case 'district':
-          newLocation.sector = '';
-          newLocation.cell = '';
-          newLocation.village = '';
-          setLocationData(prev => ({
-            ...prev,
-            sectors: locations.sectors[value] || [],
-            cells: [],
-            villages: []
-          }));
-          break;
-        case 'sector':
-          newLocation.cell = '';
-          newLocation.village = '';
-          setLocationData(prev => ({
-            ...prev,
-            cells: locations.cells[value] || [],
-            villages: []
-          }));
-          break;
-        case 'cell':
-          newLocation.village = '';
-          setLocationData(prev => ({
-            ...prev,
-            villages: locations.villages[value] || []
-          }));
-          break;
-      }
-
-      return { ...prev, location: newLocation };
-    });
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+      ...(field === 'province' && { district: '', sector: '', cell: '', village: '' }),
+      ...(field === 'district' && { sector: '', cell: '', village: '' }),
+      ...(field === 'sector' && { cell: '', village: '' }),
+      ...(field === 'cell' && { village: '' }),
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Basic validation
-    if (!formData.name || !formData.category || !formData.startDate || !formData.startTime) {
+    if (!formData.name || !formData.startDate) {
       toast.error('Please fill in all required fields');
       return;
     }
 
     try {
-      // Create a new event object
-      const newEvent = {
-        ...formData,
-        id: Date.now(),
-        createdAt: new Date().toISOString(),
-        // Convert dates to ISO string format for consistency
-        startDate: new Date(formData.startDate).toISOString(),
-        endDate: new Date(formData.endDate || formData.startDate).toISOString(),
-      };
-
-      // Add the event using the context function
-      await addEvent(newEvent);
-      
+      const response = await axiosInstance.post('/sports-tourism-events', formData);
+      console.log('Event added:', response.data);
       toast.success('Event added successfully');
       onClose();
 
-      // Reset form
       setFormData({
-        banner: null,
-        video: null,
         name: '',
         category: '',
         subCategory: '',
-        location: {
-          province: '',
-          district: '',
-          sector: '',
-          cell: '',
-          village: ''
-        },
-        startDate: '',
-        startTime: '',
-        endDate: '',
-        endTime: '',
-        participants: {
-          male: 0,
-          female: 0
-        },
-        fees: '',
-        amountGenerated: '',
+        province: '',
+        district: '',
+        sector: '',
+        cell: '',
+        village: '',
+        startDate: '2024-12-05',
+        endDate: '2024-12-05',
+        participants: 1,
+        participantsFee: 1,
+        amountGenerated: 1,
         description: '',
-        status: 'Upcoming'
+        isPublished: true,
       });
     } catch (error) {
-      console.error('Error adding event:', error);
+      console.error('Error adding event:', error.response || error.message);
       toast.error('Failed to add event');
     }
   };
@@ -195,69 +113,6 @@ const AddEventModal = ({ isOpen, onClose }) => {
       <div className="flex flex-col h-[calc(100vh-180px)]">
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6">
           <div className="space-y-8">
-            {/* Media Upload Section */}
-            <section className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Event Banner</label>
-                <div className="flex items-center space-x-4">
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleFileChange('banner', e)}
-                    className="hidden"
-                    id="banner-upload"
-                  />
-                  <label
-                    htmlFor="banner-upload"
-                    className="flex items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:border-blue-500"
-                  >
-                    {formData.banner ? (
-                      <img
-                        src={URL.createObjectURL(formData.banner)}
-                        alt="Banner preview"
-                        className="h-full object-contain"
-                      />
-                    ) : (
-                      <div className="text-center">
-                        <Upload className="mx-auto h-8 w-8 text-gray-400" />
-                        <span className="mt-2 block text-sm text-gray-600">Upload Banner</span>
-                      </div>
-                    )}
-                  </label>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Event Video</label>
-                <div className="flex items-center space-x-4">
-                  <Input
-                    type="file"
-                    accept="video/*"
-                    onChange={(e) => handleFileChange('video', e)}
-                    className="hidden"
-                    id="video-upload"
-                  />
-                  <label
-                    htmlFor="video-upload"
-                    className="flex items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:border-blue-500"
-                  >
-                    {formData.video ? (
-                      <video
-                        src={URL.createObjectURL(formData.video)}
-                        className="h-full"
-                        controls
-                      />
-                    ) : (
-                      <div className="text-center">
-                        <Upload className="mx-auto h-8 w-8 text-gray-400" />
-                        <span className="mt-2 block text-sm text-gray-600">Upload Video</span>
-                      </div>
-                    )}
-                  </label>
-                </div>
-              </div>
-            </section>
-
             {/* Basic Information */}
             <section className="grid grid-cols-2 gap-6">
               <div>
@@ -268,118 +123,129 @@ const AddEventModal = ({ isOpen, onClose }) => {
                   required
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium mb-2">Category</label>
-                <Select
+                <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   required
+                  className="w-full border border-gray-300 rounded-md"
                 >
                   <option value="">Select Category</option>
-                  {Object.keys(categories).map(category => (
-                    <option key={category} value={category}>{category}</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
                   ))}
-                </Select>
+                </select>
               </div>
-
               <div>
                 <label className="block text-sm font-medium mb-2">Sub Category</label>
-                <Select
+                <select
                   value={formData.subCategory}
                   onChange={(e) => setFormData({ ...formData, subCategory: e.target.value })}
                   required
-                  disabled={!formData.category}
+                  className="w-full border border-gray-300 rounded-md"
                 >
                   <option value="">Select Sub Category</option>
-                  {formData.category && categories[formData.category].subCategories.map(sub => (
-                    <option key={sub} value={sub}>{sub}</option>
+                  {subCategories.map((subCategory) => (
+                    <option key={subCategory.id} value={subCategory.id}>
+                      {subCategory.name}
+                    </option>
                   ))}
-                </Select>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Province</label>
+                <select
+                  value={formData.province}
+                  onChange={(e) => handleLocationChange('province', e.target.value)}
+                  required
+                  className="w-full border border-gray-300 rounded-md"
+                >
+                  <option value="">Select Province</option>
+                  {locations.provinces.map((province) => (
+                    <option key={province} value={province}>
+                      {province}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">District</label>
+                <select
+                  value={formData.district}
+                  onChange={(e) => handleLocationChange('district', e.target.value)}
+                  required
+                  className="w-full border border-gray-300 rounded-md"
+                  disabled={!formData.province}
+                >
+                  <option value="">Select District</option>
+                  {formData.province &&
+                    locations.districts[formData.province].map((district) => (
+                      <option key={district} value={district}>
+                        {district}
+                      </option>
+                    ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Sector</label>
+                <select
+                  value={formData.sector}
+                  onChange={(e) => handleLocationChange('sector', e.target.value)}
+                  required
+                  className="w-full border border-gray-300 rounded-md"
+                  disabled={!formData.district}
+                >
+                  <option value="">Select Sector</option>
+                  {formData.district &&
+                    locations.sectors[formData.district]?.map((sector) => (
+                      <option key={sector} value={sector}>
+                        {sector}
+                      </option>
+                    ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Cell</label>
+                <select
+                  value={formData.cell}
+                  onChange={(e) => handleLocationChange('cell', e.target.value)}
+                  required
+                  className="w-full border border-gray-300 rounded-md"
+                  disabled={!formData.sector}
+                >
+                  <option value="">Select Cell</option>
+                  {formData.sector &&
+                    locations.cells[formData.sector]?.map((cell) => (
+                      <option key={cell} value={cell}>
+                        {cell}
+                      </option>
+                    ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Village</label>
+                <select
+                  value={formData.village}
+                  onChange={(e) => setFormData({ ...formData, village: e.target.value })}
+                  required
+                  className="w-full border border-gray-300 rounded-md"
+                  disabled={!formData.cell}
+                >
+                  <option value="">Select Village</option>
+                  {formData.cell &&
+                    locations.villages[formData.cell]?.map((village) => (
+                      <option key={village} value={village}>
+                        {village}
+                      </option>
+                    ))}
+                </select>
               </div>
             </section>
 
-            {/* Location Section */}
-            <section>
-              <h3 className="text-lg font-semibold mb-4">Event Location</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Province</label>
-                  <Select
-                    value={formData.location.province}
-                    onChange={(e) => handleLocationChange('province', e.target.value)}
-                    required
-                  >
-                    <option value="">Select Province</option>
-                    {locationData.provinces.map(province => (
-                      <option key={province} value={province}>{province}</option>
-                    ))}
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">District</label>
-                  <Select
-                    value={formData.location.district}
-                    onChange={(e) => handleLocationChange('district', e.target.value)}
-                    required
-                    disabled={!formData.location.province}
-                  >
-                    <option value="">Select District</option>
-                    {locationData.districts.map(district => (
-                      <option key={district} value={district}>{district}</option>
-                    ))}
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Sector</label>
-                  <Select
-                    value={formData.location.sector}
-                    onChange={(e) => handleLocationChange('sector', e.target.value)}
-                    required
-                    disabled={!formData.location.district}
-                  >
-                    <option value="">Select Sector</option>
-                    {locationData.sectors.map(sector => (
-                      <option key={sector} value={sector}>{sector}</option>
-                    ))}
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Cell</label>
-                  <Select
-                    value={formData.location.cell}
-                    onChange={(e) => handleLocationChange('cell', e.target.value)}
-                    required
-                    disabled={!formData.location.sector}
-                  >
-                    <option value="">Select Cell</option>
-                    {locationData.cells.map(cell => (
-                      <option key={cell} value={cell}>{cell}</option>
-                    ))}
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Village</label>
-                  <Select
-                    value={formData.location.village}
-                    onChange={(e) => handleLocationChange('village', e.target.value)}
-                    required
-                    disabled={!formData.location.cell}
-                  >
-                    <option value="">Select Village</option>
-                    {locationData.villages.map(village => (
-                      <option key={village} value={village}>{village}</option>
-                    ))}
-                  </Select>
-                </div>
-              </div>
-            </section>
-
-            {/* Date and Time Section */}
+            {/* Date Section */}
             <section>
               <h3 className="text-lg font-semibold mb-4">Event Schedule</h3>
               <div className="grid grid-cols-2 gap-6">
@@ -390,22 +256,7 @@ const AddEventModal = ({ isOpen, onClose }) => {
                     value={formData.startDate}
                     onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                     required
-                    min={new Date().toISOString().split('T')[0]}
                   />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Start Time</label>
-                  <Select
-                    value={formData.startTime}
-                    onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                    required
-                  >
-                    <option value="">Select Time</option>
-                    {timeOptions.map(time => (
-                      <option key={time} value={time}>{time}</option>
-                    ))}
-                  </Select>
                 </div>
 
                 <div>
@@ -415,22 +266,7 @@ const AddEventModal = ({ isOpen, onClose }) => {
                     value={formData.endDate}
                     onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                     required
-                    min={formData.startDate}
                   />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">End Time</label>
-                  <Select
-                    value={formData.endTime}
-                    onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                    required
-                  >
-                    <option value="">Select Time</option>
-                    {timeOptions.map(time => (
-                      <option key={time} value={time}>{time}</option>
-                    ))}
-                  </Select>
                 </div>
               </div>
             </section>
@@ -440,50 +276,33 @@ const AddEventModal = ({ isOpen, onClose }) => {
               <h3 className="text-lg font-semibold mb-4">Participants & Fees</h3>
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Male Participants</label>
+                  <label className="block text-sm font-medium mb-2">Participants</label>
                   <Input
                     type="number"
-                    value={formData.participants.male}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      participants: { ...formData.participants, male: e.target.value }
-                    })}
+                    value={formData.participants}
+                    onChange={(e) => setFormData({ ...formData, participants: parseInt(e.target.value, 10) })}
                     min="0"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Female Participants</label>
+                  <label className="block text-sm font-medium mb-2">Participants Fee</label>
                   <Input
                     type="number"
-                    value={formData.participants.female}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      participants: { ...formData.participants, female: e.target.value }
-                    })}
+                    value={formData.participantsFee}
+                    onChange={(e) => setFormData({ ...formData, participantsFee: parseInt(e.target.value, 10) })}
                     min="0"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Event Fees (RWF)</label>
-                  <Input
-                    type="number"
-                    value={formData.fees}
-                    onChange={(e) => setFormData({ ...formData, fees: e.target.value })}
-                    min="0"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Amount Generated (RWF)</label>
+                  <label className="block text-sm font-medium mb-2">Amount Generated</label>
                   <Input
                     type="number"
                     value={formData.amountGenerated}
-                    onChange={(e) => setFormData({ ...formData, amountGenerated: e.target.value })}
+                    onChange={(e) => setFormData({ ...formData, amountGenerated: parseInt(e.target.value, 10) })}
                     min="0"
                     required
                   />
@@ -519,7 +338,7 @@ const AddEventModal = ({ isOpen, onClose }) => {
                         'blockQuote',
                         'insertTable',
                         'undo',
-                        'redo'
+                        'redo',
                       ],
                       placeholder: 'Enter detailed event description...',
                     }}
@@ -556,4 +375,4 @@ const AddEventModal = ({ isOpen, onClose }) => {
   );
 };
 
-export default AddEventModal; 
+export default AddEventModal;
